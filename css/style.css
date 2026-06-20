@@ -89,6 +89,43 @@ html.js #landing .reveal.in{opacity:1; transform:none}
   .lscroll i{animation:none}
 }
 
+/* ---------- pedido de orçamento / instalação ---------- */
+.o-intro{border-radius:24px; padding:30px 28px; margin-bottom:18px}
+.o-intro h2{font-family:var(--serif); font-weight:600; font-size:1.7rem; margin-bottom:8px}
+.o-intro p{color:var(--muted); line-height:1.6; max-width:70ch}
+.oform{border-radius:24px; padding:30px 28px}
+.ogrid{display:grid; grid-template-columns:1fr 1fr; gap:16px 20px}
+.ofield{display:flex; flex-direction:column; gap:7px; min-width:0}
+.ofield > span{font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted)}
+.ofield > span i{color:var(--gold); font-style:normal}
+.ofield input, .ofield select, .ofield textarea{
+  width:100%; box-sizing:border-box; font-family:var(--sans); font-size:.95rem; color:var(--text);
+  background:rgba(8,16,34,.55); border:1px solid var(--glass-border); border-radius:12px; padding:12px 14px;
+  transition:border-color .18s, box-shadow .18s;
+}
+.ofield textarea{resize:vertical; min-height:80px}
+.ofield input:focus, .ofield select:focus, .ofield textarea:focus{
+  outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(247,178,59,.16);
+}
+.ofield select{appearance:none; -webkit-appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size:5px 5px, 5px 5px; background-repeat:no-repeat; padding-right:36px}
+.ofull{margin-top:16px}
+.o-sol{margin-top:16px; background:rgba(247,178,59,.10); border:1px solid rgba(247,178,59,.22); border-radius:14px; padding:14px 16px; font-size:.9rem}
+.o-sol b{color:var(--text)}
+.o-actions{display:flex; flex-wrap:wrap; align-items:center; gap:14px; margin-top:20px}
+.o-actions .abtn{min-width:200px}
+.o-note{font-size:.78rem; color:var(--muted); margin:0; flex:1; min-width:200px}
+/* histórico de pedidos */
+.o-ped{background:var(--glass); border:1px solid var(--glass-border); border-radius:16px; padding:16px 18px; margin-top:12px;
+  -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px)}
+.o-ped .o-ped-top{display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap}
+.o-ped h4{font-family:var(--serif); font-weight:600; font-size:1.05rem}
+.o-ped .o-when{font-size:.78rem; color:var(--muted)}
+.o-ped .o-badge{font-size:.66rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; padding:3px 9px; border-radius:99px; background:var(--green-soft); color:var(--green)}
+.o-ped .o-meta{color:var(--muted); font-size:.86rem; margin-top:6px; line-height:1.5}
+@media(max-width:680px){ .ogrid{grid-template-columns:1fr} }
+
 /* ---------- superfície de vidro ---------- */
 .glass{
   background:var(--glass);

@@ -23,7 +23,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Albert+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <!-- 1ª imagem do fundo do landing (carrega cedo para o herói pintar logo) -->
 <link rel="preload" as="image" href="https://images.pexels.com/photos/17965455/pexels-photo-17965455.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1280&fit=crop">
-<link rel="stylesheet" href="css/style.css?v=20260620">
+<link rel="stylesheet" href="css/style.css?v=20260621">
 <!-- marca 'js' para os reveals só ficarem ocultos quando há JS (sem JS → conteúdo visível) -->
 <script>document.documentElement.classList.add('js');</script>
 </head>
@@ -171,6 +171,7 @@
     <nav class="tabs">
       <button id="tab-calc" class="active" onclick="showView('calc')">Calculadora</button>
       <button id="tab-cat" onclick="showView('cat')">Catálogo</button>
+      <button id="tab-orc" onclick="showView('orc')">Instalação</button>
       <button id="tab-form" onclick="showView('form')">Fórmulas</button>
     </nav>
     <div class="user-chip" id="userChip">
@@ -351,7 +352,8 @@
       </div>
 
       <div class="restart">
-        <button class="btn btn-go" onclick="guardarCalculo(this)">💾 Guardar cálculo</button>
+        <button class="btn btn-go" onclick="pedirInstalacao()">🛠️ Pedir instalação desta solução</button>
+        <button class="btn btn-ghost" onclick="guardarCalculo(this)">💾 Guardar cálculo</button>
         <button class="btn btn-ghost" onclick="exportarPDF()">📄 Exportar PDF</button>
         <button class="btn btn-ghost" onclick="exportarCSV()">📊 Exportar Excel</button>
         <button class="btn btn-ghost" onclick="restart()">↻ Fazer novo cálculo</button>
@@ -503,6 +505,86 @@
     <div class="src" style="max-width:980px">Dados indicativos/realistas gerados para demonstração, a partir de séries reais de fabricantes. Os preços variam por loja e quantidade.</div>
   </section>
 
+  <!-- ============ INSTALAÇÃO / ENTREGA — pedido de orçamento ============ -->
+  <section id="view-orc" class="view">
+    <div class="o-intro glass">
+      <h2>Pedir orçamento · instalação ou entrega 🛠️</h2>
+      <p>Recebe uma proposta <b>chave-na-mão</b> (painéis + inversor + estrutura + instalação) ou apenas a <b>entrega do equipamento</b>, de um instalador certificado em Portugal. Já preenchemos o que sabemos do teu cálculo — confirma e envia. <b>Sem compromisso.</b></p>
+    </div>
+
+    <form id="orcForm" class="oform glass" novalidate>
+      <div class="ogrid">
+        <label class="ofield"><span>Nome <i>*</i></span><input id="o-nome" type="text" autocomplete="name" required></label>
+        <label class="ofield"><span>Telefone / WhatsApp <i>*</i></span><input id="o-contacto" type="tel" autocomplete="tel" placeholder="+351 ..." required></label>
+
+        <label class="ofield"><span>Email</span><input id="o-email" type="email" autocomplete="email"></label>
+        <label class="ofield"><span>Localização da propriedade (localidade)</span><input id="o-localidade" type="text" placeholder="Ex.: Coimbra"></label>
+
+        <label class="ofield"><span>Tipo de propriedade</span>
+          <select id="o-tipo">
+            <option>Moradia</option><option>Apartamento</option>
+            <option>Comércio / Escritório</option><option>Indústria / Armazém</option>
+            <option>Quinta / Agrícola</option>
+          </select>
+        </label>
+        <label class="ofield"><span>És proprietário do imóvel?</span>
+          <select id="o-prop"><option>Sim</option><option>Não</option><option>Sou eu e mais alguém</option></select>
+        </label>
+
+        <label class="ofield"><span>A propriedade está ocupada todo o ano?</span>
+          <select id="o-ocup">
+            <option>Residência permanente</option><option>Casa de férias</option>
+            <option>Ocupação sazonal</option><option>Desocupada</option>
+          </select>
+        </label>
+        <label class="ofield"><span>O que procuras?</span>
+          <select id="o-procura">
+            <option>Reduzir a fatura</option><option>Independência total da rede</option>
+            <option>Carregar carro elétrico</option><option>Bateria de backup</option>
+            <option>Só equipamento (entrega, sem instalação)</option>
+          </select>
+        </label>
+
+        <label class="ofield"><span>Gasto médio mensal em eletricidade</span>
+          <select id="o-gasto">
+            <option>Menos de €50</option><option>€50 – €100</option><option>€100 – €200</option>
+            <option>€200 – €400</option><option>Mais de €400</option>
+          </select>
+        </label>
+        <label class="ofield"><span>Como pretendes financiar?</span>
+          <select id="o-fin">
+            <option>Pagamento integral</option><option>Crédito / financiamento</option>
+            <option>Leasing / renting</option><option>Ainda não sei</option>
+          </select>
+        </label>
+
+        <label class="ofield"><span>Quando gostarias de instalar?</span>
+          <select id="o-prazo">
+            <option>O mais cedo possível</option><option>1 – 3 meses</option>
+            <option>3 – 6 meses</option><option>Só estou a explorar</option>
+          </select>
+        </label>
+        <span class="ofield" aria-hidden="true"></span>
+      </div>
+
+      <label class="ofield ofull"><span>Mais alguma coisa? (piscina, carro elétrico, renovação planeada…)</span>
+        <textarea id="o-notas" rows="3"></textarea>
+      </label>
+
+      <div id="o-sol" class="o-sol" style="display:none"></div>
+      <div class="aerr" id="o-err"></div>
+
+      <div class="o-actions">
+        <button type="submit" class="btn btn-go abtn">Enviar pedido ☀</button>
+        <p class="o-note">🔒 Os teus dados ficam guardados na tua conta e só são usados para te contactar sobre este pedido.</p>
+      </div>
+    </form>
+
+    <!-- confirmação + histórico (preenchidos por app.js) -->
+    <div id="o-confirm" class="glass" style="display:none"></div>
+    <div id="o-list"></div>
+  </section>
+
   <footer>Sunny · projeto de Física · dados PVGIS / ERSE · <button type="button" class="about-link" onclick="openAbout()">ℹ Sobre o autor</button> · <span id="footUser"></span></footer>
 
   <!-- modal de detalhe do painel -->
@@ -555,11 +637,11 @@
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js?v=20260620"></script>
-<script src="js/baterias.js?v=20260620"></script>
-<script src="js/db.js?v=20260620"></script>
-<script src="js/auth.js?v=20260620"></script>
-<script src="js/app.js?v=20260620"></script>
-<script src="js/landing.js?v=20260620b"></script>
+<script src="js/config.js?v=20260621"></script>
+<script src="js/baterias.js?v=20260621"></script>
+<script src="js/db.js?v=20260621"></script>
+<script src="js/auth.js?v=20260621"></script>
+<script src="js/app.js?v=20260621"></script>
+<script src="js/landing.js?v=20260621"></script>
 </body>
 </html>

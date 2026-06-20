@@ -129,8 +129,10 @@ function showView(v){
   document.getElementById('view-'+v).classList.add('active');
   document.getElementById('tab-calc').classList.toggle('active', v==='calc');
   document.getElementById('tab-cat').classList.toggle('active', v==='cat');
+  document.getElementById('tab-orc').classList.toggle('active', v==='orc');
   document.getElementById('tab-form').classList.toggle('active', v==='form');
   if (v==='cat') initMarket();
+  if (v==='orc') initOrcamento();
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
@@ -981,6 +983,142 @@ async function guardarCalculo(btn){
     Auth.toast('Não foi possível guardar. Tenta de novo.');
   }
   btn.disabled = false;
+}
+
+/* =========================================================================
+   PEDIDO DE ORÇAMENTO / INSTALAÇÃO (vista #view-orc)
+   Captura um lead: pré-preenche do cálculo/conta, grava na BD (RLS por user)
+   e mostra o histórico. "procura = Só equipamento" cobre a entrega sem obra.
+   ========================================================================= */
+let pedidoSolucao = null;   // foto da solução escolhida (quando vem dos resultados)
+let orcWired = false, orcPrefilled = false;
+
+function initOrcamento(){
+  const form = document.getElementById('orcForm');
+  if (form && !orcWired){ form.addEventListener('submit', submitOrcamento); orcWired = true; }
+  prefillOrcamento();
+  renderSolucaoBox();
+  loadPedidos();
+}
+
+/* preenche o que já sabemos (sem sobrescrever o que o utilizador escreveu) */
+function prefillOrcamento(){
+  if (orcPrefilled) return;
+  const u = Auth.currentUser();
+  const setIfEmpty = (id, v) => { const el = document.getElementById(id); if (el && !el.value && v) el.value = v; };
+  if (u){ setIfEmpty('o-nome', u.name); setIfEmpty('o-email', u.email); }
+  if (state.regiao) setIfEmpty('o-localidade', state.regiao);
+  // tipo de propriedade a partir das respostas do quiz
+  const tipo = state.utilizacao === 'empresa' ? 'Comércio / Escritório'
+             : state.habitacao === 'apartamento' ? 'Apartamento' : 'Moradia';
+  const tEl = document.getElementById('o-tipo'); if (tEl) tEl.value = tipo;
+  // gasto mensal estimado a partir do consumo anual e preço
+  if (state.consumoAno > 0){
+    const m = (state.consumoAno / 12) * state.preco;
+    const bucket = m < 50 ? 'Menos de €50' : m < 100 ? '€50 – €100' : m < 200 ? '€100 – €200'
+                 : m < 400 ? '€200 – €400' : 'Mais de €400';
+    const gEl = document.getElementById('o-gasto'); if (gEl) gEl.value = bucket;
+  }
+  orcPrefilled = true;
+}
+
+/* botão "Pedir instalação desta solução" nos resultados */
+function pedirInstalacao(){
+  if (lastOut && !lastOut.insufficient){
+    const rec = lastOut.plans.find(p => p.best) || lastOut.plans[1];
+    pedidoSolucao = {
+      regiao: state.regiao,
+      sistema_kw: +rec.Preal.toFixed(2),
+      n_paineis: rec.N,
+      painel: rec.painel.marca + ' ' + rec.painel.modelo,
+      custo: Math.round(rec.custo),
+      payback: isFinite(rec.payback) ? +rec.payback.toFixed(1) : null,
+      bateria: state.bateria === 'sim'
+    };
+    const proc = document.getElementById('o-procura'); if (proc) proc.value = 'Reduzir a fatura';
+  }
+  showView('orc');
+}
+
+function renderSolucaoBox(){
+  const box = document.getElementById('o-sol');
+  if (!box) return;
+  if (!pedidoSolucao){ box.style.display = 'none'; return; }
+  const s = pedidoSolucao;
+  box.style.display = 'block';
+  box.innerHTML = `🔆 <b>Solução do teu cálculo:</b> ${s.n_paineis} painéis (${s.painel}) · <b>${s.sistema_kw} kW</b>`
+    + ` · ${eur(s.custo)}${s.payback ? ` · retorno ~${s.payback} anos` : ''}${s.bateria ? ' · com bateria' : ''}`
+    + `. Enviamos esta proposta ao instalador junto com o pedido.`;
+}
+
+function showOrcErr(msg){
+  const el = document.getElementById('o-err');
+  el.textContent = msg; el.classList.add('show');
+  el.scrollIntoView({ block:'center', behavior:'smooth' });
+}
+
+async function submitOrcamento(e){
+  e.preventDefault();
+  const el = document.getElementById('o-err'); el.textContent = ''; el.classList.remove('show');
+  const val = id => (document.getElementById(id).value || '').trim();
+  const nome = val('o-nome'), contacto = val('o-contacto');
+  if (nome.length < 2)     return showOrcErr('Escreve o teu nome.');
+  if (contacto.length < 6) return showOrcErr('Indica um telefone ou WhatsApp para te contactarmos.');
+
+  const payload = {
+    nome, contacto, email: val('o-email'), localidade: val('o-localidade'),
+    tipo_propriedade: val('o-tipo'), proprietario: val('o-prop'), ocupacao: val('o-ocup'),
+    procura: val('o-procura'), gasto_mensal: val('o-gasto'), financiamento: val('o-fin'),
+    prazo: val('o-prazo'), notas: val('o-notas'), solucao: pedidoSolucao || null
+  };
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true; btn.classList.add('loading');
+  try {
+    const u = Auth.currentUser();
+    if (!u || !u.id) throw new Error('sem sessão');
+    await savePedido(u.id, payload);
+    e.target.reset(); pedidoSolucao = null; orcPrefilled = false;
+    renderSolucaoBox();
+    showOrcConfirm(nome);
+    loadPedidos();
+  } catch(ex){
+    console.warn('pedido:', ex);
+    showOrcErr('Não foi possível enviar agora. Verifica a ligação e tenta de novo. ' +
+               '(Se a tabela "pedidos" ainda não existir na base de dados, é preciso criá-la com database/pedidos.sql.)');
+  }
+  btn.disabled = false; btn.classList.remove('loading');
+}
+
+function showOrcConfirm(nome){
+  const c = document.getElementById('o-confirm');
+  c.style.display = 'block';
+  c.innerHTML = `<h3 style="font-family:var(--serif);font-weight:600;font-size:1.3rem;margin-bottom:6px">Pedido enviado ✓</h3>`
+    + `<p style="color:var(--muted);line-height:1.6">Obrigado, ${nome.split(/\s+/)[0]}! Um instalador certificado vai analisar o teu pedido e contactar-te. Podes acompanhar os teus pedidos aqui em baixo.</p>`;
+  c.scrollIntoView({ block:'center', behavior:'smooth' });
+  setTimeout(() => { c.style.display = 'none'; }, 9000);
+}
+
+async function loadPedidos(){
+  const list = document.getElementById('o-list');
+  if (!list) return;
+  const u = Auth.currentUser();
+  if (!u || !u.id){ list.innerHTML = ''; return; }
+  let pedidos = [];
+  try { pedidos = await fetchPedidos(); }
+  catch(e){ list.innerHTML = ''; return; }      // tabela ainda não existe → simplesmente não mostra histórico
+  if (!pedidos.length){ list.innerHTML = ''; return; }
+  list.innerHTML = `<h3 style="font-family:var(--serif);font-weight:600;font-size:1.25rem;margin:26px 0 4px">Os meus pedidos</h3>`
+    + pedidos.map(p => {
+        const d = new Date(p.created_at).toLocaleDateString('pt-PT', { day:'2-digit', month:'2-digit', year:'numeric' });
+        const linhas = [p.tipo_propriedade, p.localidade, p.procura, p.prazo].filter(Boolean).join(' · ');
+        return `<div class="o-ped">
+          <div class="o-ped-top">
+            <h4>${p.procura || 'Pedido de instalação'}</h4>
+            <span class="o-when">${d} · <span class="o-badge">${p.estado || 'novo'}</span></span>
+          </div>
+          <div class="o-meta">${linhas}${p.contacto ? ' · 📞 ' + p.contacto : ''}</div>
+        </div>`;
+      }).join('');
 }
 
 function repeatCalculo(id){

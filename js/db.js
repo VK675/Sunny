@@ -92,3 +92,17 @@ async function deleteCalculo(id){
   const { error } = await sb.from('calculos').delete().eq('id', id);
   if (error) throw error;
 }
+
+/* ---- pedidos de orçamento / instalação (na BD, por utilizador) ---- */
+async function fetchPedidos(){
+  const { data, error } = await sb.from('pedidos')
+    .select('*').order('created_at', { ascending:false }).limit(20);
+  if (error) throw error;
+  return data;
+}
+async function savePedido(userId, payload){
+  const { data, error } = await sb.from('pedidos')
+    .insert({ user_id: userId, ...payload }).select().single();
+  if (error) throw error;
+  return data;
+}
