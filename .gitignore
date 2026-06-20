@@ -1,0 +1,10 @@
+# Configuração local do editor / ferramenta (não faz parte do projeto)
+.claude/
+
+# Dependências e sistema
+node_modules/
+.DS_Store
+Thumbs.db
+
+# Artefactos locais
+.thumbnail

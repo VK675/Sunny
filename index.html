@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Sunny — descobre o sistema solar ideal para a tua casa em Portugal: painéis e baterias reais que cabem no teu orçamento.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='26' fill='%233D9BFF'/%3E%3Cg stroke='%233D9BFF' stroke-width='8' stroke-linecap='round'%3E%3Cline x1='50' y1='6' x2='50' y2='16'/%3E%3Cline x1='50' y1='84' x2='50' y2='94'/%3E%3Cline x1='6' y1='50' x2='16' y2='50'/%3E%3Cline x1='84' y1='50' x2='94' y2='50'/%3E%3Cline x1='20' y1='20' x2='27' y2='27'/%3E%3Cline x1='73' y1='73' x2='80' y2='80'/%3E%3Cline x1='20' y1='80' x2='27' y2='73'/%3E%3Cline x1='73' y1='27' x2='80' y2='20'/%3E%3C/g%3E%3C/svg%3E">
+<title>Sunny — Energia solar para a tua casa</title>
+<!-- Open Graph / Twitter (partilha em redes sociais) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Sunny — Energia solar para a tua casa">
+<meta property="og:description" content="Simula a tua instalação fotovoltaica em Portugal: potência, painéis, produção, custo com IVA e retorno — com painéis e baterias reais.">
+<meta property="og:image" content="https://images.pexels.com/photos/159397/solar-panel-array-power-sun-electricity-159397.jpeg?auto=compress&cs=tinysrgb&w=1200&h=630&fit=crop">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sunny — Energia solar para a tua casa">
+<meta name="twitter:description" content="Simula a tua instalação fotovoltaica em Portugal: potência, painéis, produção, custo e retorno.">
+<meta name="twitter:image" content="https://images.pexels.com/photos/159397/solar-panel-array-power-sun-electricity-159397.jpeg?auto=compress&cs=tinysrgb&w=1200&h=630&fit=crop">
+<!-- preconnect aos CDNs usados (fotos do fundo, Supabase, fontes) -->
+<link rel="preconnect" href="https://images.pexels.com" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Albert+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- 1ª imagem do fundo do landing (carrega cedo para o herói pintar logo) -->
+<link rel="preload" as="image" href="https://images.pexels.com/photos/17965455/pexels-photo-17965455.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1280&fit=crop">
+<link rel="stylesheet" href="css/style.css?v=20260620">
+<!-- marca 'js' para os reveals só ficarem ocultos quando há JS (sem JS → conteúdo visível) -->
+<script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+<!-- ===== fundo animado (aurora) ===== -->
+<div class="aurora" aria-hidden="true">
+  <span class="orb orb-gold"></span>
+  <span class="orb orb-blue"></span>
+  <span class="orb orb-teal"></span>
+</div>
+
+<!-- ============================================================= -->
+<!-- =====  LANDING: história em scroll → termina no login  ====== -->
+<!-- Fundo de fotos reais que muda em parallax ao deslizar; secções -->
+<!-- aparecem (reveal-on-scroll); números fazem count-up; no fim,   -->
+<!-- a secção de autenticação (mesmos IDs/handlers de auth.js).     -->
+<!-- ============================================================= -->
+<div id="landing">
+
+  <!-- fundo: 3 fotos reais que se cruzam em parallax ao scroll -->
+  <div class="lbg" aria-hidden="true">
+    <div class="lbg-layer" style="background-image:url('https://images.pexels.com/photos/17965455/pexels-photo-17965455.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1280&fit=crop')"></div>
+    <div class="lbg-layer" style="background-image:url('https://images.pexels.com/photos/18306343/pexels-photo-18306343.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1280&fit=crop')"></div>
+    <div class="lbg-layer" style="background-image:url('https://images.pexels.com/photos/2800832/pexels-photo-2800832.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1280&fit=crop')"></div>
+    <div class="lbg-scrim"></div>
+  </div>
+
+  <!-- 1 · herói -->
+  <section class="lsec lhero">
+    <div class="reveal">
+      <div class="sun" style="margin:0 auto 22px"></div>
+      <h1>Sun<span>ny</span></h1>
+      <p class="ltag">Energia solar para a tua casa — <b>dimensionada ao teu orçamento</b>.</p>
+      <div class="lscroll" aria-hidden="true"><span>Desliza para descobrir</span><i>↓</i></div>
+    </div>
+  </section>
+
+  <!-- 2 · o que é -->
+  <section class="lsec">
+    <div class="reveal lcol">
+      <h2>Descobre o teu sistema solar ideal</h2>
+      <p>Respondes a algumas perguntas sobre o teu consumo e mostramos-te três soluções — <b>Económica</b>, <b>Equilibrada</b> e <b>Premium</b> — com produção anual, poupança, IVA e tempo de retorno. Tudo com <b>dados reais</b> de Portugal (PVGIS / ERSE) e painéis que <b>cabem no teu orçamento</b>.</p>
+    </div>
+  </section>
+
+  <!-- 3 · números (count-up) -->
+  <section class="lsec lstats-sec">
+    <div class="reveal lstats">
+      <div class="lstat"><b data-count="493">0</b><span>painéis reais no catálogo</span></div>
+      <div class="lstat"><b data-count="53">0</b><span>baterias de armazenamento</span></div>
+      <div class="lstat"><b data-count="7">0</b><span>regiões de Portugal</span></div>
+      <div class="lstat"><b data-count="100" data-suffix="%">0</b><span>dentro do teu orçamento</span></div>
+    </div>
+  </section>
+
+  <!-- 4 · vantagens -->
+  <section class="lsec lfeat-sec">
+    <div class="reveal lfeats">
+      <div class="lfeat"><div class="ic">📍</div><strong>Por região</strong><small>Do Norte ao Algarve e ilhas, com radiação solar real.</small></div>
+      <div class="lfeat"><div class="ic">💶</div><strong>Ao teu alcance</strong><small>Só te mostramos o que podes mesmo pagar.</small></div>
+      <div class="lfeat"><div class="ic">🔋</div><strong>Painéis + baterias</strong><small>Catálogo real e oferta de armazenamento opcional.</small></div>
+    </div>
+  </section>
+
+  <!-- ============================================================= -->
+  <!-- ====================  PORTÃO DE AUTENTICAÇÃO  ================ -->
+  <!-- ============================================================= -->
+  <div id="auth" class="auth-gate">
+  <div class="auth-card glass">
+    <div class="auth-brand">
+      <div class="sun"></div>
+      <div>
+        <h1>Sun<span>ny</span></h1>
+        <p>Energia solar para a tua casa</p>
+      </div>
+    </div>
+
+    <div class="auth-tabs">
+      <button type="button" id="atab-login" class="active" onclick="Auth.switchTab('login')">Entrar</button>
+      <button type="button" id="atab-reg" onclick="Auth.switchTab('reg')">Criar conta</button>
+      <span class="auth-ink"></span>
+    </div>
+
+    <!-- ---- LOGIN ---- -->
+    <form id="form-login" class="auth-form active" autocomplete="on" novalidate>
+      <label class="afld">
+        <span class="albl">Email</span>
+        <input type="email" id="li-email" placeholder="o.teu@email.pt" autocomplete="email" required>
+      </label>
+      <label class="afld">
+        <span class="albl">Palavra-passe</span>
+        <span class="pwrap">
+          <input type="password" id="li-pwd" placeholder="••••••••" autocomplete="current-password" required>
+          <button type="button" class="peye" onclick="Auth.toggleEye(this)" aria-label="Mostrar palavra-passe">👁</button>
+        </span>
+      </label>
+      <div class="aerr" id="li-err"></div>
+      <button type="submit" class="btn btn-go abtn">Entrar ☀</button>
+      <p class="aswitch">Ainda não tens conta? <a onclick="Auth.switchTab('reg')">Cria uma grátis</a></p>
+    </form>
+
+    <!-- ---- REGISTO ---- -->
+    <form id="form-reg" class="auth-form" autocomplete="on" novalidate>
+      <label class="afld">
+        <span class="albl">Nome</span>
+        <input type="text" id="rg-name" placeholder="Como te chamas?" autocomplete="name" required>
+      </label>
+      <label class="afld">
+        <span class="albl">Email</span>
+        <input type="email" id="rg-email" placeholder="o.teu@email.pt" autocomplete="email" required>
+      </label>
+      <label class="afld">
+        <span class="albl">Palavra-passe</span>
+        <span class="pwrap">
+          <input type="password" id="rg-pwd" placeholder="mínimo 6 caracteres" autocomplete="new-password" required>
+          <button type="button" class="peye" onclick="Auth.toggleEye(this)" aria-label="Mostrar palavra-passe">👁</button>
+        </span>
+        <span class="pmeter"><i id="rg-bar"></i></span>
+      </label>
+      <div class="aerr" id="rg-err"></div>
+      <button type="submit" class="btn btn-go abtn">Criar conta ☀</button>
+      <p class="aswitch">Já tens conta? <a onclick="Auth.switchTab('login')">Entra aqui</a></p>
+    </form>
+
+    <p class="aprivacy">🔒 Conta protegida pelo Supabase Auth — a tua palavra-passe é cifrada e nunca passa pelo código deste site.</p>
+    <p class="aprivacy" style="margin-top:10px"><button type="button" class="about-link" onclick="openAbout()">ℹ Quem fez esta app?</button></p>
+  </div>
+  </div><!-- /#auth -->
+</div><!-- /#landing -->
+
+<!-- ============================================================= -->
+<!-- =========================  APLICAÇÃO  ======================= -->
+<!-- ============================================================= -->
+<div id="app" class="wrap" hidden>
+
+  <header class="top">
+    <div class="brand">
+      <div class="sun"></div>
+      <div>
+        <h1>Sun<span>ny</span></h1>
+        <p>Energia solar para a tua casa</p>
+      </div>
+    </div>
+    <nav class="tabs">
+      <button id="tab-calc" class="active" onclick="showView('calc')">Calculadora</button>
+      <button id="tab-cat" onclick="showView('cat')">Catálogo</button>
+      <button id="tab-form" onclick="showView('form')">Fórmulas</button>
+    </nav>
+    <div class="user-chip" id="userChip">
+      <div class="avatar" id="userAvatar">?</div>
+      <div class="uinfo">
+        <strong id="userName">—</strong>
+        <button class="logout" onclick="Auth.logout()">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ CALCULADORA ============ -->
+  <section id="view-calc" class="view active">
+
+    <!-- intro -->
+    <div id="intro" class="hero glass">
+      <h2>Descobre o teu sistema <em>solar ideal</em> em 8 passos.</h2>
+      <p>Responde a algumas perguntas sobre o teu consumo (em kWh) e a percentagem de autossuficiência que pretendes. Dimensionamos o sistema com dados reais de produção solar por região de Portugal (fonte: PVGIS / tabela Regiões) e mostramos-te três soluções — <b>Económica</b>, <b>Equilibrada</b> e <b>Premium</b> — com produção anual, poupança e retorno do investimento.</p>
+      <button class="btn btn-go" onclick="startQuiz()">Começar cálculo ☀</button>
+      <div class="feat">
+        <div><div class="ic">📍</div><strong>Por região</strong><small>Norte ao Algarve e ilhas</small></div>
+        <div><div class="ic">💶</div><strong>Ao teu alcance</strong><small>Só o que podes pagar</small></div>
+        <div><div class="ic">📈</div><strong>Retorno real</strong><small>Poupança e anos a recuperar</small></div>
+      </div>
+    </div>
+
+    <!-- cálculos guardados do utilizador (preenchido por loadCalculos) -->
+    <div id="savedCalcs"></div>
+
+    <!-- quiz -->
+    <div id="quiz" class="card glass" style="display:none">
+      <div class="progress">
+        <span class="lbl" id="plbl">Passo 1 de 8</span>
+        <div class="dot done" id="p1"></div><div class="dot" id="p2"></div>
+        <div class="dot" id="p3"></div><div class="dot" id="p4"></div><div class="dot" id="p5"></div><div class="dot" id="p6"></div><div class="dot" id="p7"></div><div class="dot" id="p8"></div>
+      </div>
+
+      <!-- step 1 region -->
+      <div class="step active" data-step="1">
+        <div class="q">Onde vives?</div>
+        <div class="hint">A quantidade de sol muda muito entre o Norte e o Sul, e nas ilhas.</div>
+        <label class="fld">
+          <select id="regiao">
+            <option value="">— Escolhe a tua região —</option>
+          </select>
+        </label>
+        <div class="geo">
+          <button type="button" onclick="detectar()">📍 Usar a minha localização</button>
+          <div class="msg" id="geomsg"></div>
+        </div>
+        <div class="err" id="err1">Escolhe uma região para continuar.</div>
+      </div>
+
+      <!-- step 2 use type + housing + contracted power (realidade PT) -->
+      <div class="step" data-step="2">
+        <div class="q">Para onde é o sistema?</div>
+        <div class="hint">Indica o <b>tipo de utilização</b> e como é o edifício. A <b>potência contratada</b> (em kVA) vem na tua fatura de eletricidade — o inversor solar não deve ultrapassá-la. <b>Não sabes?</b> Escolhe "não sei".</div>
+        <div class="opts" id="utilOpts" style="margin-bottom:14px">
+          <div class="opt sel" data-u="habitacao" onclick="pickUtil(this)"><b>Habitação</b><small>casa / uso doméstico</small></div>
+          <div class="opt" data-u="empresa" onclick="pickUtil(this)"><b>Empresa</b><small>negócio / uso comercial</small></div>
+        </div>
+        <div class="opts" id="habOpts" style="margin-bottom:14px">
+          <div class="opt sel" data-h="moradia" onclick="pickHab(this)"><b>Moradia / edifício próprio</b><small>com telhado próprio</small></div>
+          <div class="opt" data-h="apartamento" onclick="pickHab(this)"><b>Apartamento / condomínio</b><small>num prédio</small></div>
+        </div>
+        <label class="fld">
+          <select id="kva">
+            <option value="0">Potência contratada — não sei</option>
+            <option value="1.15">1,15 kVA</option>
+            <option value="2.3">2,3 kVA</option>
+            <option value="3.45">3,45 kVA (o mais comum)</option>
+            <option value="4.6">4,6 kVA</option>
+            <option value="5.75">5,75 kVA</option>
+            <option value="6.9">6,9 kVA</option>
+            <option value="10.35">10,35 kVA</option>
+            <option value="13.8">13,8 kVA</option>
+            <option value="17.25">17,25 kVA</option>
+            <option value="20.7">20,7 kVA</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- step 3 consumption (kWh) — enunciado: consumo anual ou médio mensal -->
+      <div class="step" data-step="3">
+        <div class="q">Qual é o teu consumo de eletricidade?</div>
+        <div class="hint">Em <b>kWh</b> — vem na tua fatura (EDP, Galp, Endesa…). Escolhe se o valor é por <b>ano</b> ou por <b>mês</b>. Uma casa típica em Portugal gasta ~3500 kWh/ano (~290 kWh/mês).</div>
+        <div class="opts" id="consPeriodoOpts" style="margin-bottom:14px">
+          <div class="opt sel" data-p="ano" onclick="pickPeriodo(this)"><b>Por ano</b><small>consumo anual</small></div>
+          <div class="opt" data-p="mes" onclick="pickPeriodo(this)"><b>Por mês</b><small>média mensal</small></div>
+        </div>
+        <label class="fld"><div class="kwh"><input type="number" id="consumo" min="1" placeholder="Ex.: 3500" inputmode="decimal"></div></label>
+        <div class="err" id="err3">Indica um valor maior que zero.</div>
+      </div>
+
+      <!-- step 4 self-sufficiency target (enunciado: 25/50/75/100%) -->
+      <div class="step" data-step="4">
+        <div class="q">Que percentagem do consumo queres cobrir?</div>
+        <div class="hint">A <b>autossuficiência</b> pretendida: quanto do teu consumo anual queres que os painéis produzam. 100% = sistema que cobre todo o consumo do ano.</div>
+        <div class="opts" id="cobOpts" style="margin-bottom:4px">
+          <div class="opt" data-c="0.25" onclick="pickCobertura(this)"><b>25%</b><small>arranque económico</small></div>
+          <div class="opt" data-c="0.5" onclick="pickCobertura(this)"><b>50%</b><small>meio do caminho</small></div>
+          <div class="opt" data-c="0.75" onclick="pickCobertura(this)"><b>75%</b><small>grande parte</small></div>
+          <div class="opt sel" data-c="1" onclick="pickCobertura(this)"><b>100%</b><small>todo o consumo</small></div>
+        </div>
+      </div>
+
+      <!-- step 5 roof area (opcional) -->
+      <div class="step" data-step="5">
+        <div class="q">Quanto espaço tens no telhado?</div>
+        <div class="hint">Área aproximada virada a sul, em m². <b>Não sabes?</b> Deixa em branco — assumimos que há espaço suficiente.</div>
+        <label class="fld"><div class="area"><input type="number" id="telhado" min="1" placeholder="Ex.: 25" inputmode="decimal"></div></label>
+      </div>
+
+      <!-- step 6 tariff (preços médios PT 2026: ERSE/mercado) -->
+      <div class="step" data-step="6">
+        <div class="q">Que tipo de tarifa tens?</div>
+        <div class="hint">Serve para calcular a poupança e o retorno. Se não tiveres a certeza, escolhe "Simples" — é a mais comum.</div>
+        <div class="opts" id="tarifaOpts">
+          <div class="opt sel" data-t="0.22" data-name="simples" onclick="pickTarifa(this)"><b>Simples</b><small>preço único · ~0,22 €/kWh</small></div>
+          <div class="opt" data-t="0.19" data-name="bi" onclick="pickTarifa(this)"><b>Bi-horário</b><small>dia / noite · ~0,19 €/kWh</small></div>
+          <div class="opt" data-t="0.18" data-name="tri" onclick="pickTarifa(this)"><b>Tri-horário</b><small>3 períodos · ~0,18 €/kWh</small></div>
+        </div>
+      </div>
+
+      <!-- step 7 budget (OPCIONAL) -->
+      <div class="step" data-step="7">
+        <div class="q">Tens um orçamento máximo? <small style="font-weight:500;opacity:.7">(opcional)</small></div>
+        <div class="hint">Se indicares um valor, avisamos-te quando uma solução o ultrapassa. <b>Deixa em branco</b> para dimensionar só pela autossuficiência que escolheste.</div>
+        <label class="fld"><div class="euro"><input type="number" id="orcamento" min="1" placeholder="Ex.: 5000 (ou deixa vazio)" inputmode="decimal"></div></label>
+      </div>
+
+      <!-- step 8 battery -->
+      <div class="step" data-step="8">
+        <div class="q">Queres guardar energia numa bateria? 🔋</div>
+        <div class="hint">Os painéis produzem de dia, mas muito do consumo é à noite. Uma bateria guarda o excedente do dia para usares à noite — custa mais, mas aumenta a poupança. <b>Só te mostramos baterias que caibam no teu orçamento.</b></div>
+        <div class="opts" id="batOpts">
+          <div class="opt sel" data-b="nao" onclick="pickBateria(this)"><b>Não, só painéis</b><small>investimento menor</small></div>
+          <div class="opt" data-b="sim" onclick="pickBateria(this)"><b>Sim, quero bateria</b><small>energia também à noite</small></div>
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" id="btnPrev" onclick="prevStep()" style="visibility:hidden">← Anterior</button>
+        <button class="btn btn-go" id="btnNext" onclick="nextStep()">Seguinte →</button>
+      </div>
+    </div>
+
+    <!-- results -->
+    <div id="results" style="display:none">
+      <div class="res-head">
+        <div class="q">Opções ao teu alcance ☀</div>
+        <p id="resSub"></p>
+      </div>
+
+      <!-- mensagem se o orçamento não chegar -->
+      <div id="noBudget" class="card glass" style="display:none"></div>
+
+      <div class="cards" id="planCards"></div>
+
+      <!-- oferta de baterias (se o utilizador quis armazenamento) -->
+      <div class="chart-box glass" id="batBox" style="display:none"></div>
+
+      <!-- realidade PT: registo DGEG, potência contratada, condomínio -->
+      <div class="chart-box glass" id="regBox" style="display:none"></div>
+
+      <!-- estimativa teórica (fórmula da aula: Eu_day → Et → z) + dica de tarifa -->
+      <div class="chart-box glass" id="theoryBox" style="display:none"></div>
+
+      <div class="chart-box glass" id="chartBox">
+        <h4>Produção ao longo do ano</h4>
+        <div class="sub">Opção recomendada — repara como o Verão produz muito mais que o Inverno.</div>
+        <div class="legend">
+          <span><i style="background:linear-gradient(180deg,var(--gold),var(--gold-deep))"></i>Energia produzida (kWh/mês)</span>
+          <span><i style="background:var(--need-c)"></i>Consumo da casa</span>
+        </div>
+        <div class="bars" id="bars"></div>
+        <div class="insight" id="insight"></div>
+      </div>
+
+      <div class="restart">
+        <button class="btn btn-go" onclick="guardarCalculo(this)">💾 Guardar cálculo</button>
+        <button class="btn btn-ghost" onclick="exportarPDF()">📄 Exportar PDF</button>
+        <button class="btn btn-ghost" onclick="exportarCSV()">📊 Exportar Excel</button>
+        <button class="btn btn-ghost" onclick="restart()">↻ Fazer novo cálculo</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FÓRMULAS ============ -->
+  <section id="view-form" class="view">
+    <div class="f-intro glass">
+      <h2>Como são feitos os cálculos</h2>
+      <p>Seguimos o algoritmo do projeto: partimos do teu <b>consumo</b> e da <b>autossuficiência</b> pretendida para calcular a potência necessária e o número de painéis. A produção assenta na Física — <b>E = P × t</b> — e na produção de referência de cada região (kWh/kWp/ano).</p>
+    </div>
+
+    <div class="physics glass-dark">
+      <h3>☀ Porque é que o Sol muda ao longo do ano?</h3>
+      <p>A Terra está inclinada 23,5°. No Inverno, o Sol fica baixo no céu e os dias são curtos — chega menos energia. No Verão, o Sol fica alto e os dias longos — chega muito mais. Por isso a mesma casa produz quase 3× mais em Julho do que em Dezembro. Usamos os valores reais de "horas de Sol de pico" de cada mês (fonte: PVGIS).</p>
+    </div>
+
+    <div class="formula glass">
+      <span class="n">1</span><h3>Consumo objetivo (autossuficiência)</h3>
+      <div class="eq">ConsumoObjetivo = <b>ConsumoAnual</b> × Cobertura</div>
+      <ul class="vars">
+        <li><code>ConsumoAnual</code> — o teu consumo em kWh/ano (introduzido por ti)</li>
+        <li><code>Cobertura</code> — autossuficiência pretendida: 25%, 50%, 75% ou 100%</li>
+      </ul>
+      <p>Primeiro decidimos <b>quanta energia</b> o sistema deve produzir por ano, de acordo com a percentagem que escolheste.</p>
+    </div>
+
+    <div class="formula glass" style="border-left-color:var(--gold)">
+      <span class="n" style="background:var(--gold-deep)">2</span><h3>Potência necessária e número de painéis &nbsp;<small class="ftag">← o coração da app</small></h3>
+      <div class="eq">PotênciaNecessária = <b>ConsumoObjetivo</b> ÷ ProduçãoRegional</div>
+      <div class="eq">NúmeroPainéis = <b>PotênciaNecessária (W)</b> ÷ PotênciaPainel (W)</div>
+      <ul class="vars">
+        <li><code>ProduçãoRegional</code> — produção de referência da região em kWh/kWp/ano (tabela Regiões)</li>
+        <li><code>PotênciaPainel</code> — potência do painel escolhido, em watts (Wp)</li>
+      </ul>
+      <p>Dividimos a energia objetivo pela produção da região para saber a potência (kWp), e depois pela potência de cada painel para saber <b>quantos painéis</b> são precisos. O <b>orçamento é opcional</b>: se o indicares, assinalamos as soluções que o ultrapassam.</p>
+    </div>
+
+    <div class="formula glass">
+      <span class="n">3</span><h3>Energia produzida pelos painéis &nbsp;<small class="ftag">← a Física: E = P × t</small></h3>
+      <div class="eq">Produção = <b>Potência</b> × Horas de Sol × Rendimento</div>
+      <ul class="vars">
+        <li><code>Potência</code> — potência do sistema, em kW</li>
+        <li><code>Horas de Sol</code> — horas de Sol de pico do mês (dados PVGIS)</li>
+        <li><code>Rendimento (η)</code> — ~80%, perdas por calor, inversor, pó</li>
+      </ul>
+      <p>É a fórmula E = P × t aplicada a cada mês. O rendimento (η = útil ÷ total) tem em conta que nem toda a energia do Sol se transforma em eletricidade.</p>
+    </div>
+
+    <div class="formula glass" style="border-left-color:var(--gold)">
+      <span class="n" style="background:var(--gold-deep)">★</span><h3>Área teórica de painéis &nbsp;<small class="ftag">← estimativa rápida da aula</small></h3>
+      <div class="eq">Eu<sub>dia</sub> = <b>Consumo do mês</b> ÷ 30 &nbsp;·&nbsp; Et = Eu<sub>dia</sub> × 100 ÷ η &nbsp;·&nbsp; z = <b>Et</b> ÷ Irradiação</div>
+      <ul class="vars">
+        <li><code>Eu_dia</code> — energia que gastas por dia (kWh) = consumo do mês ÷ 30</li>
+        <li><code>η</code> — rendimento do painel segundo a gama: Económico ≈ 18%, Equilibrado ≈ 20%, Premium ≈ 22%</li>
+        <li><code>Et</code> — energia que os painéis têm de captar por dia (kWh)</li>
+        <li><code>Irradiação</code> — Sol médio diário da região (kWh/m²/dia; valor de referência ≈ 5)</li>
+        <li><code>z</code> — área de painéis necessária (m²), arredondada para cima</li>
+      </ul>
+      <p>Maneira rápida de estimar a <b>área de telhado</b> necessária para cobrir todo o consumo, partindo do rendimento do painel. Esta estimativa aparece também no fim do cálculo, ao lado das opções dentro do orçamento.</p>
+    </div>
+
+    <div class="formula glass">
+      <span class="n">4</span><h3>Custo do sistema</h3>
+      <div class="eq">Custo = (<b>Nº painéis</b> × preço + instalação) × (1 + IVA)</div>
+      <p>O preço de cada painel vem do catálogo. Somamos o inversor e a instalação. O IVA aplicado é o da região (tabela Regiões): <b>23%</b> no Continente, <b>22%</b> na Madeira e <b>16%</b> nos Açores.</p>
+    </div>
+
+    <div class="formula glass">
+      <span class="n">5</span><h3>Poupança por ano</h3>
+      <div class="eq">Poupança = <b>Energia aproveitada</b> × preço da eletricidade</div>
+      <p>Poupas no que produzes e consomes. O que sobra é vendido à rede a um preço mais baixo (~0,05 €/kWh).</p>
+    </div>
+
+    <div class="formula glass">
+      <span class="n">6</span><h3>Retorno do investimento (payback)</h3>
+      <div class="eq">Anos = <b>Custo</b> ÷ Poupança por ano</div>
+      <p>Quantos anos demora o sistema a pagar-se a si próprio. A opção <b>Equilibrada</b> (recomendada) é a que tem a melhor relação preço/produção.</p>
+    </div>
+
+    <div class="formula glass">
+      <span class="n">🔋</span><h3>Bateria (opcional)</h3>
+      <div class="eq">Energia guardada/dia = mín(<b>Capacidade útil</b> × η<sub>bat</sub>, Excedente diário)</div>
+      <div class="eq">Poupança extra = Energia guardada × (preço da rede − preço de venda)</div>
+      <p>Sem bateria, o excedente é vendido barato (~0,05 €/kWh). Com bateria, usa-lo à noite e deixas de comprar a ~0,20 €/kWh — cada kWh guardado vale a <b>diferença</b> entre os dois preços. O retorno da bateria = preço ÷ poupança extra por ano. Dimensionamos para ~60% do consumo diário (a parte da noite).</p>
+    </div>
+
+    <div class="formula glass" style="border-left-color:var(--green)">
+      <span class="n" style="background:var(--green)">+</span><h3>CO₂ evitado</h3>
+      <div class="eq">CO₂ (kg) = <b>Energia produzida</b> × 0,20 kg/kWh</div>
+      <p>Cada kWh solar evita ~0,20 kg de CO₂ que a rede emitiria.</p>
+    </div>
+
+    <div class="src">
+      <b>Fontes dos dados:</b> produção solar por região e curva mensal — PVGIS (Comissão Europeia) / tabela Regiões do projeto (Norte 1300, Centro 1450, Sul 1650, Açores 1400, Madeira 1700 kWh/kWp/ano); preço médio da eletricidade ~0,22 €/kWh (tarifa simples; bi ~0,19, tri ~0,18 — ERSE / mercado português); IVA por região (enunciado): Continente 23% · Madeira 22% · Açores 16%; licenciamento de autoconsumo — DL 15/2022 (DGEG): até 1,5 kW sem registo, 1,5–30 kW com Comunicação Prévia.
+    </div>
+  </section>
+
+  <!-- ============ CATÁLOGO / MARKETPLACE ============ -->
+  <section id="view-cat" class="view">
+    <div class="cat-intro glass">
+      <h2>Catálogo de painéis 🗂️</h2>
+      <p>Base de dados com <b id="dbCount">—</b> painéis solares de marcas reais. Filtra por <b>segmento</b>, <b>tecnologia</b>, <b>gama</b>, <b>marca</b>, preço e potência — ou pesquisa pelo modelo. Carrega num painel para ver todos os detalhes e guardá-lo nos favoritos.</p>
+    </div>
+
+    <div class="market-toolbar glass">
+      <div class="msearch">
+        <span>🔍</span>
+        <input id="mSearch" type="search" placeholder="Pesquisar marca ou modelo…" oninput="onFilter()" autocomplete="off">
+      </div>
+      <select id="mSort" onchange="onFilter()">
+        <option value="relevance">Destaque</option>
+        <option value="price-asc">Preço: mais barato</option>
+        <option value="price-desc">Preço: mais caro</option>
+        <option value="power-desc">Mais potente</option>
+        <option value="eff-desc">Maior rendimento</option>
+        <option value="value">Melhor €/Wp</option>
+      </select>
+      <button id="favToggle" class="fav-toggle" onclick="toggleFavOnly()">♥ Favoritos <span id="favCount">0</span></button>
+    </div>
+
+    <div class="market-body">
+      <aside class="market-filters glass">
+        <div class="fgroup"><h5>Segmento</h5><div id="fSegmento" class="chips"></div></div>
+        <div class="fgroup"><h5>Tecnologia</h5><div id="fTec" class="chips"></div></div>
+        <div class="fgroup"><h5>Gama</h5><div id="fTier" class="chips"></div></div>
+        <div class="fgroup"><h5>Cor</h5><div id="fCor" class="chips"></div></div>
+        <div class="fgroup">
+          <h5 id="priceLbl">Preço máximo: <span id="priceVal" class="fval"></span></h5>
+          <input type="range" id="priceRange" oninput="onPriceInput()" onchange="onFilter()" aria-labelledby="priceLbl">
+        </div>
+        <div class="fgroup">
+          <h5 id="powerLbl">Potência mínima: <span id="powerVal" class="fval"></span></h5>
+          <input type="range" id="powerRange" oninput="onPowerInput()" onchange="onFilter()" aria-labelledby="powerLbl">
+        </div>
+        <div class="fgroup"><h5>Marca</h5><div id="fMarca" class="chips chips-scroll"></div></div>
+        <button class="btn btn-ghost btn-clear" onclick="clearFilters()">↺ Limpar filtros</button>
+      </aside>
+
+      <div class="market-main">
+        <div class="market-count" id="marketCount"></div>
+        <div class="market-grid" id="marketGrid"></div>
+        <div class="market-empty" id="marketEmpty" style="display:none">Nenhum painel corresponde aos filtros. <a onclick="clearFilters()">Limpar filtros</a></div>
+        <div class="market-more"><button class="btn btn-ghost" id="loadMore" onclick="loadMore()">Ver mais painéis</button></div>
+      </div>
+    </div>
+    <div class="src" style="max-width:980px">Dados indicativos/realistas gerados para demonstração, a partir de séries reais de fabricantes. Os preços variam por loja e quantidade.</div>
+  </section>
+
+  <footer>Sunny · projeto de Física · dados PVGIS / ERSE · <button type="button" class="about-link" onclick="openAbout()">ℹ Sobre o autor</button> · <span id="footUser"></span></footer>
+
+  <!-- modal de detalhe do painel -->
+  <div id="panelModal" class="modal" onclick="closePanel(event)">
+    <div class="modal-card glass" role="dialog" aria-modal="true" aria-label="Detalhes do painel">
+      <button class="modal-x" onclick="closePanel()" aria-label="Fechar">✕</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- toast de boas-vindas -->
+<div id="toast" class="toast"></div>
+
+<!-- ============================================================= -->
+<!-- =========================  SOBRE O AUTOR  =================== -->
+<!-- ============================================================= -->
+<div id="aboutModal" class="modal" onclick="closeAbout(event)">
+  <div class="modal-card glass" role="dialog" aria-modal="true" aria-label="Sobre o autor" style="max-width:440px;text-align:center">
+    <button class="modal-x" onclick="closeAbout()" aria-label="Fechar">✕</button>
+    <div style="display:flex;flex-direction:column;align-items:center;padding:8px 4px 4px">
+      <div style="width:88px;height:88px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#9BE0FF,#3D9BFF 55%,#1463E8);box-shadow:0 0 0 6px rgba(61,155,255,.16),0 14px 36px -8px rgba(20,99,232,.7);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:600;font-size:1.7rem;color:#fff;text-shadow:0 1px 2px rgba(8,40,110,.45);letter-spacing:.02em">VK</div>
+      <p style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:16px">Criado por</p>
+      <h3 style="font-family:var(--serif);font-size:1.7rem;font-weight:600;letter-spacing:-.01em;margin-top:2px">Valerii Kravchenko</h3>
+      <p style="color:var(--gold-soft);font-size:.86rem;font-weight:600;margin-top:4px">Aluno de ESCO · Turma PSI9</p>
+      <p style="color:var(--muted);font-size:.95rem;max-width:34ch;margin-top:10px;line-height:1.55">Autor da aplicação <b style="color:var(--text)">Sunny</b> — projeto de Gestão e Programação de Sistemas Informáticos.</p>
+      <div style="width:100%;margin-top:20px;border-top:1px dashed var(--line);padding-top:16px">
+        <p style="font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:11px">Tecnologias usadas</p>
+        <div style="display:flex;flex-wrap:wrap;gap:7px;justify-content:center">
+          <span class="tchip">HTML5</span>
+          <span class="tchip">CSS3</span>
+          <span class="tchip">JavaScript</span>
+          <span class="tchip">Three.js · WebGL</span>
+          <span class="tchip">Supabase Auth</span>
+          <span class="tchip">PostgreSQL</span>
+          <span class="tchip">Google Fonts</span>
+          <span class="tchip">Dados PVGIS / ERSE</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  window.openAbout = function(){ var m=document.getElementById('aboutModal'); if(m){ m.classList.add('show'); if(window.trapModal) window.trapModal(m); } };
+  window.closeAbout = function(e){
+    if(e && e.target && e.target.id!=='aboutModal' && !(e.target.classList && e.target.classList.contains('modal-x'))) return;
+    var m=document.getElementById('aboutModal'); if(m && m.classList.contains('show')){ m.classList.remove('show'); if(window.untrapModal) window.untrapModal(); }
+  };
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ var m=document.getElementById('aboutModal'); if(m && m.classList.contains('show')){ m.classList.remove('show'); if(window.untrapModal) window.untrapModal(); } } });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js?v=20260620"></script>
+<script src="js/baterias.js?v=20260620"></script>
+<script src="js/db.js?v=20260620"></script>
+<script src="js/auth.js?v=20260620"></script>
+<script src="js/app.js?v=20260620"></script>
+<script src="js/landing.js?v=20260620b"></script>
+</body>
+</html>
