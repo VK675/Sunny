@@ -706,6 +706,7 @@ function buildBatteryOffer(ctx, plans){
 
 function renderBatteryOffer(out){
   const box = document.getElementById('batBox');
+  selectedBateriaId = null; lastBatteryOpts = [];   // reposto a cada cálculo
   if (state.bateria !== 'sim'){ box.style.display = 'none'; return; }
   box.style.display = 'block';
 
@@ -729,6 +730,7 @@ function renderBatteryOffer(out){
   }
 
   const semOrc = !(state.orcamento > 0);
+  lastBatteryOpts = offer.opts;   // para resolver a bateria escolhida ao guardar/enviar
   const cards = offer.opts.map(o => {
     const b = o.b;
     const totalCom = offer.rec.custo + o.custo;
@@ -737,8 +739,10 @@ function renderBatteryOffer(out){
       ? `✓ Plano + bateria: ${eur(totalCom)}`
       : `✓ Cabe na sobra · plano + bateria usa ${usado}%`;
     return `
-      <div class="plan bat ${o.tag === 'Recomendada' ? 'recommended' : ''}">
+      <div class="plan bat ${o.tag === 'Recomendada' ? 'recommended' : ''}" data-bat="${b.id}" role="button" tabindex="0"
+           onclick="selectBateria('${b.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectBateria('${b.id}')}">
         ${o.tag === 'Recomendada' ? '<span class="badge-best">Recomendada</span>' : ''}
+        <span class="pcheck" aria-hidden="true">✓ Escolhida</span>
         <span class="tag">${o.tag}</span>
         <div class="desc">${b.marca} · ${b.quimica} · ${b.tensao}</div>
         <h3>${b.modelo}</h3>
@@ -769,6 +773,9 @@ function renderBatteryOffer(out){
     <div class="cards bat-cards">${cards}</div>
     ${note}
     <div class="sub" style="margin-top:12px;margin-bottom:0">⚙️ Nota: a bateria liga-se a um <b>inversor híbrido</b> (ou é AC acoplada, como a Tesla/Enphase). Se o inversor do sistema não for híbrido, conta com mais 300–600 € na instalação.</div>`;
+  // escolha por defeito = bateria Recomendada (o utilizador pode trocar)
+  const recB = offer.opts.find(o => o.tag === 'Recomendada') || offer.opts[0];
+  if (recB) selectBateria(recB.b.id);
 }
 
 function calcular(){
@@ -793,6 +800,7 @@ function calcular(){
     document.getElementById('theoryBox').style.display = 'none';
     document.getElementById('batBox').style.display = 'none';
     document.getElementById('regBox').style.display = 'none';
+    document.getElementById('planHint').style.display = 'none';
     noBudget.style.display = 'block';
     if (out.reason === 'loading'){
       noBudget.innerHTML = `<h3>Catálogo ainda a carregar ⏳</h3><p>Aguarda um instante e tenta de novo.</p>`;
@@ -821,8 +829,10 @@ function calcular(){
       fitLine = `<div class="fit">Dimensionado para ${Math.round(state.cobertura*100)}% de autossuficiência</div>`;
     }
     cont.innerHTML += `
-      <div class="plan ${d.key} ${d.best?'recommended':''}">
+      <div class="plan ${d.key} ${d.best?'recommended':''}" data-plan="${d.key}" role="button" tabindex="0"
+           onclick="selectPlan('${d.key}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectPlan('${d.key}')}">
         ${d.best ? '<span class="badge-best">Recomendado</span>' : ''}
+        <span class="pcheck" aria-hidden="true">✓ Escolhido</span>
         <span class="tag">${d.tag}</span>
         <div class="desc">${d.desc}</div>
         <h3>${d.N} ${d.N===1?'painel':'painéis'}</h3>
@@ -838,9 +848,13 @@ function calcular(){
           <li>Área no telhado <b>${d.area.toFixed(0)} m²</b></li>
           <li>CO₂ evitado <b>${Math.round(d.co2)} kg/ano</b></li>
         </ul>
-        <div class="painel">Painel: <b>${d.painel.marca} ${d.painel.potencia}W</b> · ${d.painel.rendimento}% · ${d.painel.preco}€/un <a class="plink" onclick="openPanel('${d.painel.id}')">ver ficha →</a></div>
+        <div class="painel">Painel: <b>${d.painel.marca} ${d.painel.potencia}W</b> · ${d.painel.rendimento}% · ${d.painel.preco}€/un <a class="plink" onclick="event.stopPropagation();openPanel('${d.painel.id}')">ver ficha →</a></div>
       </div>`;
   });
+  // seleção por defeito = plano recomendado (o utilizador pode trocar clicando)
+  const bestPlan = out.plans.find(p => p.best) || out.plans[1];
+  selectPlan(bestPlan.key);
+  document.getElementById('planHint').style.display = 'block';
 
   // ---- estimativa teórica (fórmula da aula) + dica de tarifa ----
   const est = theoreticalEstimate(out.ctx, out.plans[1].painel);
@@ -924,6 +938,33 @@ function renderRegBox(out){
    ========================================================================= */
 let lastOut = null;   // resultado do último cálculo (para guardar)
 let CALCS = [];       // cache das linhas carregadas
+let selectedPlanKey = null;     // plano escolhido pelo utilizador (eco|mid|ideal)
+let selectedBateriaId = null;   // bateria escolhida (id) — quando há oferta
+let lastBatteryOpts = [];       // opções de bateria do último cálculo (para resolver a escolha)
+
+/* plano atualmente escolhido (fallback: recomendado) */
+function chosenPlan(){
+  if (!lastOut || lastOut.insufficient) return null;
+  return lastOut.plans.find(p => p.key === selectedPlanKey)
+      || lastOut.plans.find(p => p.best) || lastOut.plans[1];
+}
+/* bateria atualmente escolhida (objeto da oferta) ou null */
+function chosenBateria(){
+  if (state.bateria !== 'sim' || !selectedBateriaId) return null;
+  return lastBatteryOpts.find(o => o.b.id === selectedBateriaId) || null;
+}
+/* clique num cartão de plano */
+function selectPlan(key){
+  selectedPlanKey = key;
+  document.querySelectorAll('#planCards .plan').forEach(el =>
+    el.classList.toggle('sel', el.dataset.plan === key));
+}
+/* clique num cartão de bateria */
+function selectBateria(id){
+  selectedBateriaId = id;
+  document.querySelectorAll('#batBox .plan.bat').forEach(el =>
+    el.classList.toggle('sel', el.dataset.bat === id));
+}
 
 async function loadCalculos(){
   const u = Auth.currentUser();
@@ -961,8 +1002,9 @@ function renderSavedCalcs(){
 async function guardarCalculo(btn){
   const u = Auth.currentUser();
   if (!u || !u.id) return Auth.toast('Inicia sessão para guardar cálculos.');
-  if (!lastOut || lastOut.insufficient) return Auth.toast('Faz um cálculo completo primeiro.');
-  const rec = lastOut.plans.find(p => p.best) || lastOut.plans[1];
+  const rec = chosenPlan();
+  if (!rec) return Auth.toast('Faz um cálculo completo primeiro.');
+  const bat = chosenBateria();
   btn.disabled = true;
   try {
     await saveCalculo(u.id, {
@@ -972,8 +1014,12 @@ async function guardarCalculo(btn){
         consumoAno: state.consumoAno, cobertura: state.cobertura,
         utilizacao: state.utilizacao, bateria: state.bateria,
         habitacao: state.habitacao, kva: state.kva,
+        // 'recomendado' = a opção ESCOLHIDA pelo utilizador (mantém o nome p/ compat.)
         recomendado: { n: rec.N, marca: rec.painel.marca, modelo: rec.painel.modelo,
-                       custo: Math.round(rec.custo), payback: +rec.payback.toFixed(1) }
+                       plano: rec.tag, custo: Math.round(rec.custo),
+                       payback: +rec.payback.toFixed(1) },
+        bateria_escolhida: bat ? { modelo: bat.b.marca + ' ' + bat.b.modelo,
+                       kwh: bat.b.capacidadeUtil, custo: Math.round(bat.custo) } : null
       }
     });
     Auth.toast('Cálculo guardado ✓');
@@ -996,9 +1042,35 @@ let orcWired = false, orcPrefilled = false;
 function initOrcamento(){
   const form = document.getElementById('orcForm');
   if (form && !orcWired){ form.addEventListener('submit', submitOrcamento); orcWired = true; }
+  // se entrou pela aba (sem passar pelo botão dos resultados) mas há um cálculo
+  // recente, anexa-o na mesma — o pedido leva sempre o contexto da solução.
+  if (!pedidoSolucao) pedidoSolucao = snapshotSolucao();
   prefillOrcamento();
   renderSolucaoBox();
   loadPedidos();
+}
+
+/* "foto" da solução ESCOLHIDA do último cálculo (null se não houver) */
+function snapshotSolucao(){
+  const rec = chosenPlan();
+  if (!rec) return null;
+  const snap = {
+    regiao: state.regiao,
+    plano: rec.tag,                              // Económica / Equilibrada / Premium
+    sistema_kw: +rec.Preal.toFixed(2),
+    n_paineis: rec.N,
+    painel: rec.painel.marca + ' ' + rec.painel.modelo,
+    custo: Math.round(rec.custo),
+    payback: isFinite(rec.payback) ? +rec.payback.toFixed(1) : null,
+    bateria: state.bateria === 'sim'
+  };
+  const bat = chosenBateria();
+  if (bat){
+    snap.bateria_modelo = bat.b.marca + ' ' + bat.b.modelo;
+    snap.bateria_kwh = bat.b.capacidadeUtil;
+    snap.bateria_custo = Math.round(bat.custo);
+  }
+  return snap;
 }
 
 /* preenche o que já sabemos (sem sobrescrever o que o utilizador escreveu) */
@@ -1024,17 +1096,9 @@ function prefillOrcamento(){
 
 /* botão "Pedir instalação desta solução" nos resultados */
 function pedirInstalacao(){
-  if (lastOut && !lastOut.insufficient){
-    const rec = lastOut.plans.find(p => p.best) || lastOut.plans[1];
-    pedidoSolucao = {
-      regiao: state.regiao,
-      sistema_kw: +rec.Preal.toFixed(2),
-      n_paineis: rec.N,
-      painel: rec.painel.marca + ' ' + rec.painel.modelo,
-      custo: Math.round(rec.custo),
-      payback: isFinite(rec.payback) ? +rec.payback.toFixed(1) : null,
-      bateria: state.bateria === 'sim'
-    };
+  const snap = snapshotSolucao();
+  if (snap){
+    pedidoSolucao = snap;
     const proc = document.getElementById('o-procura'); if (proc) proc.value = 'Reduzir a fatura';
   }
   showView('orc');
@@ -1046,8 +1110,10 @@ function renderSolucaoBox(){
   if (!pedidoSolucao){ box.style.display = 'none'; return; }
   const s = pedidoSolucao;
   box.style.display = 'block';
-  box.innerHTML = `🔆 <b>Solução do teu cálculo:</b> ${s.n_paineis} painéis (${s.painel}) · <b>${s.sistema_kw} kW</b>`
-    + ` · ${eur(s.custo)}${s.payback ? ` · retorno ~${s.payback} anos` : ''}${s.bateria ? ' · com bateria' : ''}`
+  const planoLbl = s.plano ? ` <span class="o-sol-tag">${s.plano}</span>` : '';
+  const batLbl = s.bateria_modelo ? ` · 🔋 ${s.bateria_modelo} (${s.bateria_kwh} kWh)` : (s.bateria ? ' · com bateria' : '');
+  box.innerHTML = `🔆 <b>Solução escolhida:</b>${planoLbl} ${s.n_paineis} painéis (${s.painel}) · <b>${s.sistema_kw} kW</b>`
+    + ` · ${eur(s.custo)}${s.payback ? ` · retorno ~${s.payback} anos` : ''}${batLbl}`
     + `. Enviamos esta proposta ao instalador junto com o pedido.`;
 }
 

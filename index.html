@@ -23,7 +23,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Albert+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <!-- 1ª imagem do fundo do landing (carrega cedo para o herói pintar logo) -->
 <link rel="preload" as="image" href="https://images.pexels.com/photos/17965455/pexels-photo-17965455.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1280&fit=crop">
-<link rel="stylesheet" href="css/style.css?v=20260621">
+<link rel="stylesheet" href="css/style.css?v=20260623">
 <!-- marca 'js' para os reveals só ficarem ocultos quando há JS (sem JS → conteúdo visível) -->
 <script>document.documentElement.classList.add('js');</script>
 </head>
@@ -329,6 +329,7 @@
       <!-- mensagem se o orçamento não chegar -->
       <div id="noBudget" class="card glass" style="display:none"></div>
 
+      <p id="planHint" class="pick-hint" style="display:none">👉 Escolhe a opção que preferes — é a que vais guardar e enviar ao instalador.</p>
       <div class="cards" id="planCards"></div>
 
       <!-- oferta de baterias (se o utilizador quis armazenamento) -->
@@ -641,7 +642,7 @@
 <script src="js/baterias.js?v=20260621"></script>
 <script src="js/db.js?v=20260621"></script>
 <script src="js/auth.js?v=20260621"></script>
-<script src="js/app.js?v=20260621"></script>
+<script src="js/app.js?v=20260623"></script>
 <script src="js/landing.js?v=20260621"></script>
 </body>
 </html>
