@@ -23,7 +23,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Albert+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <!-- 1ª imagem do fundo do landing (carrega cedo para o herói pintar logo) -->
 <link rel="preload" as="image" href="https://images.pexels.com/photos/17965455/pexels-photo-17965455.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1280&fit=crop">
-<link rel="stylesheet" href="css/style.css?v=20260623">
+<link rel="stylesheet" href="css/style.css?v=20260624">
 <!-- marca 'js' para os reveals só ficarem ocultos quando há JS (sem JS → conteúdo visível) -->
 <script>document.documentElement.classList.add('js');</script>
 </head>
@@ -73,7 +73,7 @@
   <!-- 3 · números (count-up) -->
   <section class="lsec lstats-sec">
     <div class="reveal lstats">
-      <div class="lstat"><b data-count="493">0</b><span>painéis reais no catálogo</span></div>
+      <div class="lstat"><b data-count="66">0</b><span>painéis reais no catálogo</span></div>
       <div class="lstat"><b data-count="53">0</b><span>baterias de armazenamento</span></div>
       <div class="lstat"><b data-count="7">0</b><span>regiões de Portugal</span></div>
       <div class="lstat"><b data-count="100" data-suffix="%">0</b><span>dentro do teu orçamento</span></div>
@@ -355,7 +355,7 @@
       <div class="restart">
         <button class="btn btn-go" onclick="pedirInstalacao()">🛠️ Pedir instalação desta solução</button>
         <button class="btn btn-ghost" onclick="guardarCalculo(this)">💾 Guardar cálculo</button>
-        <button class="btn btn-ghost" onclick="exportarPDF()">📄 Exportar PDF</button>
+        <button class="btn btn-ghost" onclick="exportarPDF()">📄 Fatura / Orçamento (PDF)</button>
         <button class="btn btn-ghost" onclick="exportarCSV()">📊 Exportar Excel</button>
         <button class="btn btn-ghost" onclick="restart()">↻ Fazer novo cálculo</button>
       </div>
@@ -503,7 +503,40 @@
         <div class="market-more"><button class="btn btn-ghost" id="loadMore" onclick="loadMore()">Ver mais painéis</button></div>
       </div>
     </div>
-    <div class="src" style="max-width:980px">Dados indicativos/realistas gerados para demonstração, a partir de séries reais de fabricantes. Os preços variam por loja e quantidade.</div>
+    <!-- ============ FONTES DOS DADOS ============ -->
+    <div class="fontes glass" id="fontes">
+      <h3>📚 Fontes dos dados</h3>
+      <p>O catálogo reúne <b>modelos reais</b> de fabricantes. As especificações (potência, rendimento, dimensões, peso, células, tecnologia, garantias e coeficiente de temperatura) foram retiradas das <b>fichas técnicas oficiais</b> de cada fabricante — abre a ficha de qualquer painel e clica em <b>“Ficha técnica do fabricante →”</b> para ver a folha de onde vieram os dados. O <b>rendimento</b> é calculado pela física (η = Potência ÷ Área, em STC), coincidindo com a ficha.</p>
+
+      <div class="fontes-cols">
+        <div>
+          <h5>Fabricantes (fichas técnicas)</h5>
+          <ul class="fontes-list">
+            <li><a href="https://www.jinkosolar.com/en/site/tigerneo" target="_blank" rel="noopener noreferrer">Jinko Solar — Tiger Neo / Tiger Pro</a></li>
+            <li><a href="https://www.longi.com/en/products/modules/" target="_blank" rel="noopener noreferrer">LONGi — Hi-MO 5 / X6 / 7</a></li>
+            <li><a href="https://www.jasolar.eu/en/products/deep-blue-40" target="_blank" rel="noopener noreferrer">JA Solar — DeepBlue 4.0 Pro</a></li>
+            <li><a href="https://www.trinasolar.com/en-glb/product" target="_blank" rel="noopener noreferrer">Trina Solar — Vertex S+ / N</a></li>
+            <li><a href="https://www.csisolar.com/module/" target="_blank" rel="noopener noreferrer">Canadian Solar — TOPHiKu6 / TOPBiHiKu6</a></li>
+            <li><a href="https://www.qcells.com/" target="_blank" rel="noopener noreferrer">Q-Cells — Q.TRON BLK</a></li>
+            <li><a href="https://www.recgroup.com/en/products/rec-alpha-pure-rx" target="_blank" rel="noopener noreferrer">REC — Alpha Pure-RX</a></li>
+            <li><a href="https://www.maxeon.com/" target="_blank" rel="noopener noreferrer">SunPower / Maxeon 6</a></li>
+            <li><a href="https://www.meyerburger.com/en/solar-module" target="_blank" rel="noopener noreferrer">Meyer Burger — White</a></li>
+            <li><a href="https://aikosolar.com/en/" target="_blank" rel="noopener noreferrer">Aiko — Neostar 2S</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Diretórios e preços (orientativos)</h5>
+          <ul class="fontes-list">
+            <li><a href="https://www.enfsolar.com/pv/panel-datasheet" target="_blank" rel="noopener noreferrer">ENF Solar — diretório de fichas técnicas</a></li>
+            <li><a href="https://tienda-solar.es/en/" target="_blank" rel="noopener noreferrer">Tienda Solar (ES/PT)</a></li>
+            <li><a href="https://www.vncasainteligente.pt/paineis-fotovoltaicos" target="_blank" rel="noopener noreferrer">VNC Casa Inteligente (PT)</a></li>
+            <li><a href="https://www.perma-batteries.com/pt/" target="_blank" rel="noopener noreferrer">Perma Batteries (PT)</a></li>
+            <li><a href="https://www.solartraders.com/en/" target="_blank" rel="noopener noreferrer">SolarTraders (distribuidor UE)</a></li>
+          </ul>
+          <p class="fontes-note">⚠ Os <b>preços</b> são <b>orientativos</b> (retalho PT/Ibérico, ~€/Wp por gama) e variam por loja e quantidade — servem para comparar opções, não são cotações.</p>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- ============ INSTALAÇÃO / ENTREGA — pedido de orçamento ============ -->
@@ -642,7 +675,7 @@
 <script src="js/baterias.js?v=20260621"></script>
 <script src="js/db.js?v=20260621"></script>
 <script src="js/auth.js?v=20260621"></script>
-<script src="js/app.js?v=20260623"></script>
+<script src="js/app.js?v=20260624"></script>
 <script src="js/landing.js?v=20260621"></script>
 </body>
 </html>

@@ -1,34 +1,22 @@
 /* =========================================================================
-   Solário — gerador da base de dados de painéis solares
-   Executa:  node scripts/gen-paineis.js   →   escreve ../paineis.js
+   Sunny — gerador da base de dados de painéis solares (MODELOS REAIS)
+   Executa:  node scripts/gen-paineis.js   →   escreve ../js/paineis.js
    --------------------------------------------------------------------------
-   Os registos são GERADOS de forma determinística (mesma seed = mesmos dados)
-   a partir de séries REAIS de fabricantes. Especificações e preços são
-   indicativos/realistas para fins de demonstração — não são tabelas oficiais.
-   --------------------------------------------------------------------------
-   Física usada:  área (m²) = Potência(W) / (η · 1000 W/m²)   [STC]
+   Cada série abaixo corresponde a um produto REAL de um fabricante real, com
+   dimensões, peso, células e tecnologia retirados das FICHAS TÉCNICAS oficiais
+   (ver URL em 'ds'). As potências listadas são as variantes reais vendidas.
+   O rendimento (%) é calculado pela física STC a partir das dimensões reais e
+   da potência:  η = Potência / (Área · 1000 W/m²)  — coincide com a ficha no
+   modelo de referência. Os PREÇOS são ORIENTATIVOS (retalho PT/Ibérico, €/Wp
+   típico por gama) — ver README/secção "Fontes" para as lojas consultadas.
    ========================================================================= */
 'use strict';
 const fs = require('fs');
 const path = require('path');
 
-/* ---------- PRNG determinístico (mulberry32) ---------- */
-let _seed = 20260608 >>> 0;
-function rng(){
-  _seed |= 0; _seed = _seed + 0x6D2B79F5 | 0;
-  let t = Math.imul(_seed ^ _seed >>> 15, 1 | _seed);
-  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-  return ((t ^ t >>> 14) >>> 0) / 4294967296;
-}
-const rnd  = (min, max) => min + (max - min) * rng();
-const pick = arr => arr[Math.floor(rng() * arr.length)];
-const r2   = n => Math.round(n * 100) / 100;
-const r1   = n => Math.round(n * 10) / 10;
+const r2 = n => Math.round(n * 100) / 100;
 
-/* ---------- fotos reais (Pexels, URLs verificados) ----------
-   Banco de imagens reais de painéis solares. Cada painel recebe uma foto
-   de forma determinística: telhado/residencial vs. parque/comercial.       */
-/* todos VERIFICADOS visualmente — só painéis, sem pessoas/flores/céu */
+/* ---------- fotos reais (Pexels, URLs verificados) ---------- */
 const IMG_ROOF  = [356049, 8853509, 9799702, 7102661, 18306343, 17965455, 15751129, 25751713];
 const IMG_FIELD = [356036, 4320449, 4320475, 9799706, 11145690, 13963757, 2800832, 18523430, 14384696];
 function hashStr(s){
@@ -42,105 +30,73 @@ function imageFor(p){
   return `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg`;
 }
 
-/* ---------- parâmetros por tecnologia ---------- */
-const TECDATA = {
-  'Mono PERC':        { degr: 0.55, coef: -0.34, gp: 12, gpot: 25 },
-  'N-Type TOPCon':    { degr: 0.40, coef: -0.29, gp: 15, gpot: 30 },
-  'N-Type HJT':       { degr: 0.25, coef: -0.24, gp: 25, gpot: 30 },
-  'IBC':              { degr: 0.25, coef: -0.27, gp: 25, gpot: 30 },
-  'ABC (N-Type)':     { degr: 0.35, coef: -0.26, gp: 15, gpot: 30 },
-};
-
-/* ---------- séries reais (templates) ---------- */
-/* pMin..pMax = gama de potência (W); step = incremento; colors; larguraMódulo(m);
-   effMin..effMax = rendimento (%); wpMin..wpMax = €/Wp (módulo);
-   tier: Económico | Equilibrado | Premium                                   */
+/* ---------- séries REAIS ----------
+   l,w,h  = dimensões do módulo (mm) da ficha técnica
+   peso   = kg (ficha); cells = nº de células; coef = coef. temperatura Pmax (%/°C)
+   degr   = degradação anual (%); gp/gpot = garantia produto/potência (anos)
+   eurWp  = preço orientativo €/Wp (retalho PT/Ibérico) → preço = potência·eurWp
+   pots   = potências reais (Wp) vendidas;  cores = acabamentos                    */
 const SERIES = [
-  // ---- ECONÓMICO (Mono PERC) ----
-  { brand:'Risen',        serie:'Titan S',        tec:'Mono PERC',     pMin:405, pMax:455, step:5,  colors:['Full Black','Silver'], larg:1.13, effMin:20.0, effMax:21.0, wpMin:0.13, wpMax:0.17, tier:'Económico' },
-  { brand:'Talesun',      serie:'Bistar',         tec:'Mono PERC',     pMin:410, pMax:460, step:5,  colors:['Silver'],              larg:1.13, effMin:20.1, effMax:21.0, wpMin:0.13, wpMax:0.16, tier:'Económico' },
-  { brand:'Leapton',      serie:'LP182',          tec:'Mono PERC',     pMin:410, pMax:455, step:5,  colors:['Full Black','Silver'], larg:1.13, effMin:20.2, effMax:21.0, wpMin:0.13, wpMax:0.17, tier:'Económico' },
-  { brand:'Amerisolar',   serie:'AS-6M',          tec:'Mono PERC',     pMin:400, pMax:450, step:5,  colors:['Silver'],              larg:1.13, effMin:19.8, effMax:20.6, wpMin:0.12, wpMax:0.16, tier:'Económico' },
-  { brand:'Sunket',       serie:'SKT-M',          tec:'Mono PERC',     pMin:540, pMax:560, step:5,  colors:['Silver'],              larg:1.13, effMin:20.5, effMax:21.2, wpMin:0.12, wpMax:0.15, tier:'Económico' },
+  /* ===================== ECONÓMICO — Mono PERC ===================== */
+  { marca:'Jinko',          serie:'Tiger Pro 54HC',     tec:'Mono PERC',     tier:'Económico',   seg:'Residencial', l:1722, w:1134, h:30, peso:21.0, cells:108, coef:-0.35, degr:0.55, gp:12, gpot:25, bif:false, eurWp:0.15, cores:['Silver'],               pots:[405,410,415], ds:'https://www.jinkosolar.com/en/site/tigerpro' },
+  { marca:'LONGi',          serie:'Hi-MO 5 LR5-54HPH',  tec:'Mono PERC',     tier:'Económico',   seg:'Residencial', l:1722, w:1134, h:30, peso:21.3, cells:108, coef:-0.34, degr:0.55, gp:12, gpot:25, bif:false, eurWp:0.15, cores:['Silver'],               pots:[405,410,415], ds:'https://www.longi.com/en/products/modules/hi-mo-5/' },
+  { marca:'JA Solar',       serie:'JAM54S31',           tec:'Mono PERC',     tier:'Económico',   seg:'Residencial', l:1722, w:1134, h:30, peso:21.5, cells:108, coef:-0.35, degr:0.55, gp:12, gpot:25, bif:false, eurWp:0.15, cores:['Silver'],               pots:[405,410,415], ds:'https://www.jasolar.com/html/en/MonocrystallineModule/' },
+  { marca:'Trina',          serie:'Vertex S DE09R.08',  tec:'Mono PERC',     tier:'Económico',   seg:'Residencial', l:1754, w:1096, h:30, peso:21.0, cells:108, coef:-0.34, degr:0.55, gp:12, gpot:25, bif:false, eurWp:0.15, cores:['Silver'],               pots:[405,410,415], ds:'https://www.trinasolar.com/en-glb/product/VERTEX-S-DE09R.08' },
+  { marca:'Canadian Solar', serie:'HiKu6 CS6R',         tec:'Mono PERC',     tier:'Económico',   seg:'Residencial', l:1722, w:1134, h:30, peso:21.3, cells:108, coef:-0.34, degr:0.55, gp:12, gpot:25, bif:false, eurWp:0.14, cores:['Silver'],               pots:[405,410], ds:'https://www.csisolar.com/module/hiku6/' },
+  { marca:'Risen',          serie:'Titan RSM40-8',      tec:'Mono PERC',     tier:'Económico',   seg:'Residencial', l:1722, w:1134, h:30, peso:21.5, cells:108, coef:-0.35, degr:0.55, gp:12, gpot:25, bif:false, eurWp:0.13, cores:['Silver'],               pots:[405,410], ds:'https://en.risenenergy.com/' },
 
-  // ---- EQUILIBRADO (N-Type TOPCon) ----
-  { brand:'Jinko',        serie:'Tiger Neo',      tec:'N-Type TOPCon', pMin:425, pMax:475, step:5,  colors:['Full Black','Silver'], larg:1.13, effMin:21.5, effMax:23.0, wpMin:0.18, wpMax:0.25, tier:'Equilibrado' },
-  { brand:'Jinko',        serie:'Tiger Neo 72',   tec:'N-Type TOPCon', pMin:565, pMax:625, step:5,  colors:['Silver'],              larg:1.13, effMin:22.0, effMax:23.2, wpMin:0.16, wpMax:0.21, tier:'Equilibrado' },
-  { brand:'LONGi',        serie:'Hi-MO X6',       tec:'N-Type TOPCon', pMin:420, pMax:470, step:5,  colors:['Full Black','Silver'], larg:1.13, effMin:21.3, effMax:22.8, wpMin:0.18, wpMax:0.25, tier:'Equilibrado' },
-  { brand:'LONGi',        serie:'Hi-MO 7',        tec:'N-Type TOPCon', pMin:570, pMax:620, step:5,  colors:['Silver'],              larg:1.13, effMin:21.8, effMax:22.6, wpMin:0.16, wpMax:0.21, tier:'Equilibrado' },
-  { brand:'JA Solar',     serie:'DeepBlue 4.0',   tec:'N-Type TOPCon', pMin:425, pMax:470, step:5,  colors:['Full Black','Silver'], larg:1.13, effMin:21.0, effMax:22.5, wpMin:0.17, wpMax:0.24, tier:'Equilibrado' },
-  { brand:'JA Solar',     serie:'DeepBlue 4.0 Pro',tec:'N-Type TOPCon',pMin:570, pMax:625, step:5,  colors:['Silver'],              larg:1.13, effMin:21.6, effMax:22.8, wpMin:0.16, wpMax:0.21, tier:'Equilibrado' },
-  { brand:'Trina',        serie:'Vertex S+',      tec:'N-Type TOPCon', pMin:425, pMax:470, step:5,  colors:['Full Black','Silver'], larg:1.13, effMin:21.3, effMax:22.8, wpMin:0.18, wpMax:0.25, tier:'Equilibrado' },
-  { brand:'Trina',        serie:'Vertex N',       tec:'N-Type TOPCon', pMin:575, pMax:625, step:5,  colors:['Silver'],              larg:1.13, effMin:21.8, effMax:22.7, wpMin:0.16, wpMax:0.21, tier:'Equilibrado' },
-  { brand:'Canadian Solar',serie:'TOPHiKu6',      tec:'N-Type TOPCon', pMin:430, pMax:475, step:5,  colors:['Full Black','Silver'], larg:1.13, effMin:21.2, effMax:22.5, wpMin:0.16, wpMax:0.23, tier:'Equilibrado' },
-  { brand:'Canadian Solar',serie:'TOPBiHiKu6',    tec:'N-Type TOPCon', pMin:580, pMax:630, step:5,  colors:['Silver'],              larg:1.13, effMin:21.6, effMax:22.6, wpMin:0.15, wpMax:0.20, tier:'Equilibrado' },
-  { brand:'Q-Cells',      serie:'Q.TRON BLK',     tec:'N-Type TOPCon', pMin:425, pMax:445, step:5,  colors:['Full Black'],          larg:1.13, effMin:21.5, effMax:22.5, wpMin:0.20, wpMax:0.27, tier:'Equilibrado' },
-  { brand:'Q-Cells',      serie:'Q.PEAK DUO',     tec:'N-Type TOPCon', pMin:410, pMax:440, step:5,  colors:['Full Black','Silver'], larg:1.13, effMin:21.0, effMax:22.0, wpMin:0.19, wpMax:0.26, tier:'Equilibrado' },
-  { brand:'Astronergy',   serie:'ASTRO N5',       tec:'N-Type TOPCon', pMin:425, pMax:470, step:5,  colors:['Full Black','Silver'], larg:1.13, effMin:21.5, effMax:22.6, wpMin:0.15, wpMax:0.21, tier:'Equilibrado' },
-  { brand:'DAS Solar',    serie:'DAS-DH',         tec:'N-Type TOPCon', pMin:430, pMax:475, step:5,  colors:['Full Black','Silver'], larg:1.13, effMin:21.3, effMax:22.5, wpMin:0.15, wpMax:0.21, tier:'Equilibrado' },
-  { brand:'Risen',        serie:'Hyper-ion N',    tec:'N-Type TOPCon', pMin:430, pMax:475, step:5,  colors:['Full Black','Silver'], larg:1.13, effMin:21.4, effMax:22.5, wpMin:0.15, wpMax:0.20, tier:'Equilibrado' },
-  { brand:'TW Solar',     serie:'TWMND',          tec:'N-Type TOPCon', pMin:565, pMax:615, step:5,  colors:['Silver'],              larg:1.13, effMin:21.8, effMax:22.6, wpMin:0.15, wpMax:0.20, tier:'Equilibrado' },
+  /* ============== EQUILIBRADO — N-Type TOPCon (residencial 54 cél.) ============== */
+  { marca:'Jinko',          serie:'Tiger Neo 54HL4R',   tec:'N-Type TOPCon', tier:'Equilibrado', seg:'Residencial', l:1762, w:1134, h:30, peso:21.0, cells:108, coef:-0.29, degr:0.40, gp:25, gpot:30, bif:false, eurWp:0.22, cores:['Silver','Full Black'], pots:[435,440,445], ds:'https://www.jinkosolar.com/en/site/tigerneo' },
+  { marca:'LONGi',          serie:'Hi-MO X6 Guardian',  tec:'N-Type TOPCon', tier:'Equilibrado', seg:'Residencial', l:1722, w:1134, h:30, peso:21.0, cells:108, coef:-0.29, degr:0.40, gp:25, gpot:30, bif:false, eurWp:0.23, cores:['Silver','Full Black'], pots:[425,430], ds:'https://www.longi.com/en/products/modules/hi-mo-x6/' },
+  { marca:'JA Solar',       serie:'DeepBlue 4.0 Pro',   tec:'N-Type TOPCon', tier:'Equilibrado', seg:'Residencial', l:1722, w:1134, h:30, peso:21.5, cells:108, coef:-0.29, degr:0.40, gp:12, gpot:30, bif:false, eurWp:0.22, cores:['Silver'],               pots:[435,440,445], ds:'https://www.jasolar.eu/en/products/deep-blue-40' },
+  { marca:'Trina',          serie:'Vertex S+ NEG9R.28', tec:'N-Type TOPCon', tier:'Equilibrado', seg:'Residencial', l:1762, w:1134, h:30, peso:21.0, cells:108, coef:-0.30, degr:0.40, gp:25, gpot:30, bif:false, eurWp:0.22, cores:['Silver','Full Black'], pots:[440,445,450], ds:'https://www.trinasolar.com/en-glb/product/VERTEX-S-NEG9R.28' },
+  { marca:'Canadian Solar', serie:'TOPHiKu6 CS6.1-54TD',tec:'N-Type TOPCon', tier:'Equilibrado', seg:'Residencial', l:1800, w:1134, h:30, peso:22.7, cells:108, coef:-0.29, degr:0.40, gp:25, gpot:30, bif:true,  eurWp:0.21, cores:['Silver'],               pots:[445,450,455], ds:'https://www.csisolar.com/module/tophiku6/' },
+  { marca:'Q-Cells',        serie:'Q.TRON BLK M-G2+',   tec:'N-Type TOPCon', tier:'Equilibrado', seg:'Residencial', l:1722, w:1134, h:30, peso:21.2, cells:108, coef:-0.29, degr:0.40, gp:25, gpot:30, bif:false, eurWp:0.26, cores:['Full Black'],           pots:[425,430], ds:'https://www.qcells.com/' },
+  { marca:'Astronergy',     serie:'ASTRO N5 CHSM54M',   tec:'N-Type TOPCon', tier:'Equilibrado', seg:'Residencial', l:1762, w:1134, h:30, peso:21.0, cells:108, coef:-0.30, degr:0.40, gp:15, gpot:30, bif:false, eurWp:0.20, cores:['Silver','Full Black'], pots:[435,440], ds:'https://www.astronergy.com/' },
 
-  // ---- PREMIUM (HJT / IBC / ABC) ----
-  { brand:'REC',          serie:'Alpha Pure-RX',  tec:'N-Type HJT',    pMin:440, pMax:470, step:5,  colors:['Full Black'],          larg:1.04, effMin:22.0, effMax:22.6, wpMin:0.35, wpMax:0.50, tier:'Premium' },
-  { brand:'Meyer Burger', serie:'White',          tec:'N-Type HJT',    pMin:390, pMax:425, step:5,  colors:['Full Black','Silver'], larg:1.10, effMin:21.4, effMax:22.5, wpMin:0.40, wpMax:0.55, tier:'Premium' },
-  { brand:'Huasun',       serie:'Himalaya G12',   tec:'N-Type HJT',    pMin:580, pMax:720, step:10, colors:['Silver'],              larg:1.30, effMin:22.0, effMax:23.5, wpMin:0.26, wpMax:0.40, tier:'Premium' },
-  { brand:'Panasonic',    serie:'EverVolt',       tec:'N-Type HJT',    pMin:400, pMax:440, step:5,  colors:['Full Black'],          larg:1.05, effMin:21.6, effMax:22.5, wpMin:0.34, wpMax:0.48, tier:'Premium' },
-  { brand:'SunPower',     serie:'Maxeon 6',       tec:'IBC',           pMin:420, pMax:445, step:5,  colors:['Full Black'],          larg:1.04, effMin:22.5, effMax:24.1, wpMin:0.45, wpMax:0.65, tier:'Premium' },
-  { brand:'Aiko',         serie:'Neostar 2P',     tec:'ABC (N-Type)',  pMin:445, pMax:480, step:5,  colors:['Full Black','Silver'], larg:1.13, effMin:22.8, effMax:24.2, wpMin:0.30, wpMax:0.45, tier:'Premium' },
+  /* ============== EQUILIBRADO — N-Type TOPCon (comercial/utility 72 cél.) ============== */
+  { marca:'Jinko',          serie:'Tiger Neo 72HL4-(V)',tec:'N-Type TOPCon', tier:'Equilibrado', seg:'Comercial',   l:2278, w:1134, h:30, peso:28.0, cells:144, coef:-0.29, degr:0.40, gp:25, gpot:30, bif:false, eurWp:0.17, cores:['Silver'],               pots:[590,600,605], ds:'https://www.jinkosolar.com/en/site/tigerneo' },
+  { marca:'LONGi',          serie:'Hi-MO 7 LR5-72HGD',  tec:'N-Type TOPCon', tier:'Equilibrado', seg:'Comercial',   l:2278, w:1134, h:30, peso:32.0, cells:144, coef:-0.28, degr:0.40, gp:25, gpot:30, bif:true,  eurWp:0.17, cores:['Silver'],               pots:[580,585], ds:'https://www.longi.com/en/products/modules/hi-mo-7/' },
+  { marca:'JA Solar',       serie:'DeepBlue 4.0 Pro 72',tec:'N-Type TOPCon', tier:'Equilibrado', seg:'Comercial',   l:2333, w:1134, h:30, peso:32.5, cells:144, coef:-0.29, degr:0.40, gp:12, gpot:30, bif:true,  eurWp:0.16, cores:['Silver'],               pots:[580,585], ds:'https://www.jasolar.eu/en/products/deep-blue-40' },
+  { marca:'Canadian Solar', serie:'TOPBiHiKu6 CS6.1-72TB',tec:'N-Type TOPCon',tier:'Equilibrado',seg:'Comercial',   l:2382, w:1134, h:30, peso:33.6, cells:144, coef:-0.29, degr:0.40, gp:25, gpot:30, bif:true,  eurWp:0.16, cores:['Silver'],               pots:[610,620], ds:'https://www.csisolar.com/module/topbihiku6/' },
+  { marca:'Trina',          serie:'Vertex N NEG21C.20', tec:'N-Type TOPCon', tier:'Equilibrado', seg:'Industrial',  l:2384, w:1303, h:33, peso:38.3, cells:132, coef:-0.29, degr:0.40, gp:12, gpot:30, bif:true,  eurWp:0.16, cores:['Silver'],               pots:[710,720], ds:'https://www.trinasolar.com/en-glb/product/VERTEX-N-NEG21C.20' },
 
-  // ---- reforço do segmento COMERCIAL e mais marcas ----
-  { brand:'Jinko',        serie:'Tiger Neo 66',   tec:'N-Type TOPCon', pMin:490, pMax:555, step:5,  colors:['Silver'],              larg:1.13, effMin:21.8, effMax:22.8, wpMin:0.16, wpMax:0.22, tier:'Equilibrado' },
-  { brand:'LONGi',        serie:'Hi-MO 6 Scientist',tec:'N-Type TOPCon',pMin:490, pMax:560, step:5, colors:['Silver'],              larg:1.13, effMin:21.7, effMax:22.7, wpMin:0.16, wpMax:0.22, tier:'Equilibrado' },
-  { brand:'GCL',          serie:'GCL-M10/66',     tec:'N-Type TOPCon', pMin:490, pMax:550, step:5,  colors:['Full Black','Silver'], larg:1.13, effMin:21.5, effMax:22.5, wpMin:0.15, wpMax:0.20, tier:'Equilibrado' },
-  { brand:'Phono Solar',  serie:'TwinPlus',       tec:'N-Type TOPCon', pMin:430, pMax:475, step:5,  colors:['Full Black','Silver'], larg:1.13, effMin:21.3, effMax:22.4, wpMin:0.15, wpMax:0.21, tier:'Equilibrado' },
-  { brand:'Seraphim',     serie:'S5',             tec:'N-Type TOPCon', pMin:425, pMax:470, step:5,  colors:['Full Black','Silver'], larg:1.13, effMin:21.2, effMax:22.3, wpMin:0.15, wpMax:0.20, tier:'Equilibrado' },
-  { brand:'Canadian Solar',serie:'HiKu6',         tec:'Mono PERC',     pMin:525, pMax:560, step:5,  colors:['Silver'],              larg:1.13, effMin:20.8, effMax:21.5, wpMin:0.13, wpMax:0.17, tier:'Económico' },
+  /* ===================== PREMIUM — HJT / IBC / ABC ===================== */
+  { marca:'REC',            serie:'Alpha Pure-RX',      tec:'N-Type HJT',    tier:'Premium',     seg:'Residencial', l:1727, w:1204, h:30, peso:21.0, cells:88,  coef:-0.24, degr:0.25, gp:20, gpot:25, bif:false, eurWp:0.40, cores:['Full Black'],           pots:[450,460], ds:'https://www.recgroup.com/en/products/rec-alpha-pure-rx' },
+  { marca:'SunPower',       serie:'Maxeon 6',           tec:'IBC',           tier:'Premium',     seg:'Residencial', l:1872, w:1032, h:40, peso:21.8, cells:66,  coef:-0.29, degr:0.25, gp:40, gpot:40, bif:false, eurWp:0.55, cores:['Full Black'],           pots:[435,440], ds:'https://www.maxeon.com/technical-documents/maxeon-6-dc-425-440-w' },
+  { marca:'Meyer Burger',   serie:'White',              tec:'N-Type HJT',    tier:'Premium',     seg:'Residencial', l:1767, w:1041, h:35, peso:19.7, cells:120, coef:-0.23, degr:0.25, gp:25, gpot:30, bif:false, eurWp:0.50, cores:['Full Black'],           pots:[395,400], ds:'https://www.meyerburger.com/en/solar-module' },
+  { marca:'Aiko',           serie:'Neostar 2S',         tec:'ABC (N-Type)',  tier:'Premium',     seg:'Residencial', l:1757, w:1134, h:30, peso:21.5, cells:108, coef:-0.26, degr:0.26, gp:15, gpot:30, bif:false, eurWp:0.32, cores:['Full Black','Silver'], pots:[460,465], ds:'https://aikosolar.com/en/' },
+  { marca:'Huasun',         serie:'Himalaya G12 HJT',   tec:'N-Type HJT',    tier:'Premium',     seg:'Industrial',  l:2384, w:1303, h:33, peso:38.0, cells:132, coef:-0.24, degr:0.25, gp:15, gpot:30, bif:true,  eurWp:0.26, cores:['Silver'],               pots:[700], ds:'https://www.huasunsolar.com/' },
 ];
 
-/* ---------- gerar variantes de uma série ---------- */
+/* ---------- expandir cada série em registos ---------- */
 function genSeries(s){
   const out = [];
-  const td = TECDATA[s.tec];
-  const span = Math.max(1, s.pMax - s.pMin);
-  for (let p = s.pMin; p <= s.pMax; p += s.step){
-    const t = (p - s.pMin) / span;                 // 0..1 dentro da gama
-    let effBase = s.effMin + (s.effMax - s.effMin) * t + rnd(-0.12, 0.12);
-    for (const cor of s.colors){
-      const eff = r2(Math.max(s.effMin - 0.1, Math.min(s.effMax + 0.1,
-                    cor === 'Full Black' ? effBase - 0.1 : effBase)));
-      const effFrac = eff / 100;
-      const area = p / (effFrac * 1000);            // m²  (física STC)
-      const larguraM = s.larg;
-      const comprimentoM = area / larguraM;
-      const peso = r1(area * rnd(11.5, 13.5));      // ~12 kg/m²
-      const cells = p < 470 ? pick([108, 120, 132]) : pick([144, 156, 132]);
-      const segmento = p < 470 ? 'Residencial' : (p <= 560 ? 'Comercial' : 'Industrial');
-      // €/Wp desce ligeiramente com a potência
-      const wp = (s.wpMax - (s.wpMax - s.wpMin) * t) * rnd(0.95, 1.06);
-      const preco = Math.round(p * wp);
-      const bifacial = segmento !== 'Residencial' ? rng() > 0.4 : rng() > 0.85;
-
+  const areaM2 = (s.l * s.w) / 1e6;            // m² reais do módulo
+  for (const p of s.pots){
+    const eff = r2(p / (areaM2 * 1000) * 100); // η STC física (coincide com a ficha)
+    for (const cor of s.cores){
+      const preco = Math.round(p * s.eurWp);
       out.push({
-        marca: s.brand,
+        marca: s.marca,
         serie: s.serie,
         modelo: `${s.serie} ${p}W${cor === 'Full Black' ? ' Black' : ''}`,
         potencia: p,
         rendimento: eff,
-        area: r2(area),
-        comprimento: Math.round(comprimentoM * 1000),   // mm
-        largura: Math.round(larguraM * 1000),            // mm
-        peso,
-        celulas: cells,
+        area: r2(areaM2),
+        comprimento: s.l,
+        largura: s.w,
+        peso: s.peso,
+        celulas: s.cells,
         tec: s.tec,
-        bifacial,
+        bifacial: s.bif,
         cor,
-        segmento,
+        segmento: s.seg,
         tier: s.tier,
-        garantiaProduto: td.gp,
-        garantiaPotencia: td.gpot,
-        degradacaoAno: td.degr,
-        coefTemp: td.coef,
+        garantiaProduto: s.gp,
+        garantiaPotencia: s.gpot,
+        degradacaoAno: s.degr,
+        coefTemp: s.coef,
         preco,
         precoWp: r2(preco / p),
       });
@@ -165,20 +121,19 @@ all.forEach((p, i) => {
   p.imagem = imageFor(p);
 });
 
-/* baralhar de forma determinística para não agrupar por marca */
-for (let i = all.length - 1; i > 0; i--){
-  const j = Math.floor(rng() * (i + 1));
-  [all[i], all[j]] = [all[j], all[i]];
-}
+/* baralhar de forma determinística (seed fixa) para não agrupar por marca */
+let _s = 20260624 >>> 0;
+const rng = () => { _s = (_s + 0x6D2B79F5) | 0; let t = Math.imul(_s ^ _s >>> 15, 1 | _s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+for (let i = all.length - 1; i > 0; i--){ const j = Math.floor(rng() * (i + 1)); [all[i], all[j]] = [all[j], all[i]]; }
 
 /* ---------- escrever paineis.js ---------- */
 const header =
 `/* =========================================================================
-   Solário — BASE DE DADOS DE PAINÉIS SOLARES  (${all.length} registos)
-   GERADO automaticamente por scripts/gen-paineis.js — NÃO editar à mão.
-   Marcas e séries REAIS; especificações/preços indicativos para demonstração.
-   Fotos: imagens reais de painéis solares (Pexels, uso livre).
-   Cada objeto = um registo; 'id' = chave primária; 'imagem' = foto.
+   Sunny — BASE DE DADOS DE PAINÉIS SOLARES  (${all.length} registos, MODELOS REAIS)
+   GERADO por scripts/gen-paineis.js — NÃO editar à mão.
+   Marcas, séries, dimensões, peso, células e tecnologia das FICHAS TÉCNICAS
+   oficiais dos fabricantes. Rendimento = Potência/(Área·1000) em STC. Preços
+   ORIENTATIVOS (retalho PT/Ibérico). Fontes: ver secção "Fontes" no catálogo.
    ========================================================================= */
 `;
 const body = `const PAINEIS_DB = ${JSON.stringify(all, null, 0)};\n`;
@@ -187,7 +142,8 @@ fs.writeFileSync(out, header + body, 'utf8');
 
 /* resumo */
 const by = k => all.reduce((m, p) => (m[p[k]] = (m[p[k]] || 0) + 1, m), {});
-console.log(`✓ ${all.length} painéis → ${out}`);
+console.log(`✓ ${all.length} painéis reais → ${out}`);
 console.log('  por tier:', by('tier'));
 console.log('  por segmento:', by('segmento'));
 console.log('  marcas:', Object.keys(by('marca')).length, '| preço €', Math.min(...all.map(p=>p.preco)), '–', Math.max(...all.map(p=>p.preco)));
+console.log('  rendimento %:', Math.min(...all.map(p=>p.rendimento)), '–', Math.max(...all.map(p=>p.rendimento)));

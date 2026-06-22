@@ -82,6 +82,36 @@ function imageFor(p){
   return `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg`;
 }
 
+/* ---- ficha técnica do fabricante (fonte dos dados) ----
+   Atribuída no cliente por marca|série (a BD não guarda URLs). Cada link aponta
+   para a página/datasheet oficial de onde foram tiradas as especificações reais. */
+const DATASHEETS = {
+  'Jinko|Tiger Pro 54HC':            'https://www.jinkosolar.com/en/site/tigerpro',
+  'LONGi|Hi-MO 5 LR5-54HPH':         'https://www.longi.com/en/products/modules/hi-mo-5/',
+  'JA Solar|JAM54S31':               'https://www.jasolar.com/html/en/MonocrystallineModule/',
+  'Trina|Vertex S DE09R.08':         'https://www.trinasolar.com/en-glb/product/VERTEX-S-DE09R.08',
+  'Canadian Solar|HiKu6 CS6R':       'https://www.csisolar.com/module/hiku6/',
+  'Risen|Titan RSM40-8':             'https://en.risenenergy.com/',
+  'Jinko|Tiger Neo 54HL4R':          'https://www.jinkosolar.com/en/site/tigerneo',
+  'LONGi|Hi-MO X6 Guardian':         'https://www.longi.com/en/products/modules/hi-mo-x6/',
+  'JA Solar|DeepBlue 4.0 Pro':       'https://www.jasolar.eu/en/products/deep-blue-40',
+  'Trina|Vertex S+ NEG9R.28':        'https://www.trinasolar.com/en-glb/product/VERTEX-S-NEG9R.28',
+  'Canadian Solar|TOPHiKu6 CS6.1-54TD':'https://www.csisolar.com/module/tophiku6/',
+  'Q-Cells|Q.TRON BLK M-G2+':        'https://www.qcells.com/',
+  'Astronergy|ASTRO N5 CHSM54M':     'https://www.astronergy.com/',
+  'Jinko|Tiger Neo 72HL4-(V)':       'https://www.jinkosolar.com/en/site/tigerneo',
+  'LONGi|Hi-MO 7 LR5-72HGD':         'https://www.longi.com/en/products/modules/hi-mo-7/',
+  'JA Solar|DeepBlue 4.0 Pro 72':    'https://www.jasolar.eu/en/products/deep-blue-40',
+  'Canadian Solar|TOPBiHiKu6 CS6.1-72TB':'https://www.csisolar.com/module/topbihiku6/',
+  'Trina|Vertex N NEG21C.20':        'https://www.trinasolar.com/en-glb/product/VERTEX-N-NEG21C.20',
+  'REC|Alpha Pure-RX':               'https://www.recgroup.com/en/products/rec-alpha-pure-rx',
+  'SunPower|Maxeon 6':               'https://www.maxeon.com/technical-documents/maxeon-6-dc-425-440-w',
+  'Meyer Burger|White':              'https://www.meyerburger.com/en/solar-module',
+  'Aiko|Neostar 2S':                 'https://aikosolar.com/en/',
+  'Huasun|Himalaya G12 HJT':         'https://www.huasunsolar.com/',
+};
+function datasheetFor(p){ return DATASHEETS[p.marca + '|' + p.serie] || null; }
+
 /* ---- carrega as baterias (tabela da BD ou fallback baterias.js) ---- */
 async function loadBaterias(){
   try { BATERIAS = await fetchBaterias(); }
@@ -93,7 +123,7 @@ function loadLocalPaineis(){
   return new Promise((res, rej) => {
     if (typeof PAINEIS_DB !== 'undefined') return res(PAINEIS_DB);
     const s = document.createElement('script');
-    s.src = 'js/paineis.js?v=20260615a';
+    s.src = 'js/paineis.js?v=20260624';
     s.onload  = () => (typeof PAINEIS_DB !== 'undefined') ? res(PAINEIS_DB) : rej(new Error('PAINEIS_DB vazio'));
     s.onerror = () => rej(new Error('paineis.js não encontrado'));
     document.head.appendChild(s);
@@ -114,8 +144,8 @@ async function loadPaineis(){
       return;
     }
   }
-  // foto sempre atribuída no cliente (pool verificado) — ignora URLs antigos
-  PAINEIS.forEach(p => { p.imagem = imageFor(p); });
+  // foto + ficha técnica atribuídas no cliente (a BD não guarda URLs)
+  PAINEIS.forEach(p => { p.imagem = imageFor(p); p.datasheet = datasheetFor(p); });
   if (marketPending){ marketPending = false; initMarket(); }
   else if (marketInit){
     document.getElementById('dbCount').textContent = PAINEIS.length;
@@ -368,7 +398,9 @@ function openPanel(id){
     </div>
     <div class="m-actions">
       <button class="btn m-fav ${fav?'on':''}" onclick="modalFav('${p.id}', this)">${fav ? '♥ Nos favoritos' : '♡ Guardar nos favoritos'}</button>
-    </div>`;
+      ${p.datasheet ? `<a class="btn btn-ghost m-ds" href="${p.datasheet}" target="_blank" rel="noopener noreferrer">📄 Ficha técnica do fabricante →</a>` : ''}
+    </div>
+    <p class="m-source">Especificações da ficha técnica oficial ${p.marca}. Preço orientativo (retalho PT/Ibérico).</p>`;
   document.getElementById('panelModal').classList.add('show');
   document.body.style.overflow = 'hidden';
   trapModal(document.getElementById('panelModal'));
@@ -1284,63 +1316,143 @@ function relatorioDados(){
 function exportarPDF(){
   const r = relatorioDados();
   if (!r){ Auth.toast('Faz um cálculo completo primeiro.'); return; }
-  const { ctx, rec, ivaPct, entradas } = r;
-  const linha = (k,v) => `<tr><td>${k}</td><td><b>${v}</b></td></tr>`;
+  const { ctx, ivaPct, entradas } = r;
+  const rec = chosenPlan() || r.rec;          // plano que o utilizador escolheu (não só o recomendado)
+  const bat = chosenBateria();                // opção de bateria escolhida, ou null
+  const iva = ctx.reg.iva;
+
+  // ---- discriminação de custos (a parte que faltava: de onde vem o total) ----
+  const custoPaineis = rec.N * rec.painel.preco;      // só os painéis
+  const custoInstal  = rec.Preal * EXTRA_KW;          // inversor + estrutura + mão de obra (€/kW)
+  const custoBateria = bat ? bat.b.preco : 0;          // bateria (sem IVA), se escolhida
+  const subtotal     = custoPaineis + custoInstal + custoBateria;
+  const ivaValor     = subtotal * iva;
+  const total        = subtotal * (1 + iva);           // = rec.custo (+ bateria c/ IVA)
+
+  // ---- dados do cliente (da sessão Supabase) ----
+  const u = (window.Auth && Auth.currentUser) ? Auth.currentUser() : null;
+  const nomeCliente  = u && u.name  ? u.name  : '';
+  const emailCliente = u && u.email ? u.email : '';
+
+  // ---- nº do documento + data ----
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const docNum = `SY-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
+  const dataStr = now.toLocaleDateString('pt-PT');
+
+  const linha = (k,v) => `<tr><td>${k}</td><td class="r"><b>${v}</b></td></tr>`;
+  const itemRow = (desc, qtd, unit, tot) =>
+    `<tr><td>${desc}</td><td class="c">${qtd}</td><td class="r">${unit}</td><td class="r">${tot}</td></tr>`;
+
+  // linhas da discriminação
+  let itens = itemRow(
+      `Painel solar <b>${rec.painel.marca} ${rec.painel.modelo}</b><br><span class="sub">${rec.painel.potencia} Wp · ${rec.painel.rendimento}% · ${rec.painel.tec||''}</span>`,
+      rec.N, eur(rec.painel.preco), eur(custoPaineis))
+    + itemRow(
+      `Inversor, estrutura de fixação e instalação<br><span class="sub">${rec.Preal.toFixed(2)} kW × ${eur(EXTRA_KW)}/kW — chave-na-mão</span>`,
+      rec.Preal.toFixed(2)+' kW', eur(EXTRA_KW), eur(custoInstal));
+  if (bat){
+    itens += itemRow(
+      `Bateria de armazenamento <b>${bat.b.marca} ${bat.b.modelo}</b><br><span class="sub">${bat.b.capacidadeUtil} kWh úteis · ${bat.b.quimica} · ${bat.b.garantia} anos garantia</span>`,
+      1, eur(bat.b.preco), eur(custoBateria));
+  }
+
+  // outras propostas (assinala a escolhida)
   const planRows = lastOut.plans.map(p => `
-    <tr>
-      <td>${p.tag}${p.best?' ★':''}</td>
-      <td>${p.N}</td>
-      <td>${p.Preal.toFixed(1)} kW</td>
-      <td>${Math.round(p.prodAno)} kWh</td>
-      <td>${eur(p.custo)}</td>
-      <td>${isFinite(p.payback)?p.payback.toFixed(1)+' anos':'—'}</td>
+    <tr${p.key===rec.key?' class="hl"':''}>
+      <td>${p.tag}${p.key===rec.key?' ✓ (escolhida)':''}</td>
+      <td class="c">${p.N}</td>
+      <td class="c">${p.Preal.toFixed(1)} kW</td>
+      <td class="r">${Math.round(p.prodAno)} kWh</td>
+      <td class="r">${eur(p.custo)}</td>
+      <td class="r">${isFinite(p.payback)?p.payback.toFixed(1)+' anos':'—'}</td>
     </tr>`).join('');
+
+  // desempenho (inclui bateria se houver)
+  let desemp = linha('Potência instalada', rec.Preal.toFixed(2) + ' kW')
+    + linha('Produção anual estimada', Math.round(rec.prodAno) + ' kWh')
+    + linha('Cobertura real do consumo', Math.round(rec.cobReal*100) + ' %')
+    + linha('Poupança anual em eletricidade', eur(rec.poupAno) + (bat ? ' + ' + eur(bat.poupAno) + ' (bateria)' : ''))
+    + linha('Retorno do investimento', isFinite(rec.payback)?rec.payback.toFixed(1)+' anos':'—')
+    + linha('Redução de CO₂', Math.round(rec.co2) + ' kg/ano');
+  if (bat){
+    desemp += linha('Energia guardada/dia (bateria)', bat.guardada.toFixed(1) + ' kWh')
+            + linha('Retorno da bateria', isFinite(bat.payback)?bat.payback.toFixed(1)+' anos':'—');
+  }
+
   const w = window.open('', '_blank');
   w.document.write(`<!doctype html><html lang="pt"><head><meta charset="utf-8">
-    <title>Relatório Sunny — ${state.regiao}</title>
+    <title>Orçamento Sunny ${docNum}</title>
     <style>
-      body{font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;max-width:760px;margin:24px auto;padding:0 20px}
-      h1{color:#1463E8;margin:0 0 2px} h2{border-bottom:2px solid #3D9BFF;padding-bottom:4px;margin-top:26px;font-size:17px}
-      table{width:100%;border-collapse:collapse;margin-top:8px;font-size:14px}
-      td,th{border:1px solid #ddd;padding:7px 10px;text-align:left}
-      th{background:#E7F2FF} .muted{color:#777;font-size:12px}
-      .big{font-size:15px}
+      *{box-sizing:border-box}
+      body{font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;max-width:780px;margin:24px auto;padding:0 24px;font-size:14px}
+      .head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #3D9BFF;padding-bottom:14px;margin-bottom:6px}
+      .brand h1{color:#1463E8;margin:0;font-size:26px;letter-spacing:-.5px}
+      .brand p{margin:2px 0 0;color:#555;font-size:12px}
+      .doc{text-align:right;font-size:12px;color:#444}
+      .doc b{font-size:15px;color:#1463E8}
+      .parties{display:flex;gap:18px;margin:14px 0 4px}
+      .parties>div{flex:1;background:#F4F9FF;border:1px solid #DCEBFF;border-radius:8px;padding:10px 12px}
+      .parties h4{margin:0 0 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#1463E8}
+      .parties div p{margin:1px 0;font-size:13px}
+      h2{border-bottom:2px solid #3D9BFF;padding-bottom:4px;margin-top:24px;font-size:16px;color:#0d3b80}
+      table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13.5px}
+      td,th{border:1px solid #dce3ee;padding:7px 10px;text-align:left;vertical-align:top}
+      th{background:#E7F2FF;font-size:12px} .r{text-align:right;white-space:nowrap} .c{text-align:center;white-space:nowrap}
+      .sub{color:#777;font-size:11.5px}
+      .tots td{border:none;padding:5px 10px}
+      .tots .lbl{text-align:right;color:#555} .tots .val{text-align:right;width:140px;white-space:nowrap}
+      .totrow td{border-top:2px solid #1463E8;font-size:18px;font-weight:bold;color:#0d3b80;padding-top:9px}
+      tr.hl{background:#FFF7E6} tr.hl td{font-weight:bold}
+      .muted{color:#777;font-size:11.5px;margin-top:8px;line-height:1.5}
+      .note{background:#FFF7E6;border:1px solid #F0DCA0;border-radius:8px;padding:9px 12px;font-size:12px;margin-top:10px;color:#7a5b10}
+      @media print{body{margin:0}.note{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
     </style></head><body>
-    <h1>☀ Sunny — Relatório de Dimensionamento</h1>
-    <div class="muted">Sistema de Dimensionamento Fotovoltaico · ${new Date().toLocaleDateString('pt-PT')}</div>
 
-    <h2>1. Dados introduzidos</h2>
+    <div class="head">
+      <div class="brand"><h1>☀ Sunny</h1><p>Dimensionamento e orçamento de sistemas fotovoltaicos</p></div>
+      <div class="doc"><b>Orçamento pró-forma</b><br>Nº ${docNum}<br>${dataStr}</div>
+    </div>
+
+    <div class="parties">
+      <div><h4>Cliente</h4>
+        <p><b>${nomeCliente || '—'}</b></p>
+        ${emailCliente?`<p>${emailCliente}</p>`:''}
+        <p>${entradas.regiao}</p>
+        <p>${entradas.utilizacao}${state.habitacao?' · '+(state.habitacao==='apartamento'?'Apartamento':'Moradia'):''}</p>
+      </div>
+      <div><h4>Dados do consumo</h4>
+        <p>Consumo: <b>${entradas.consumoAno} kWh/ano</b></p>
+        <p>Autossuficiência pretendida: <b>${entradas.cobertura}%</b></p>
+        <p>Tarifa: ${entradas.tarifa} · ${state.preco.toFixed(2).replace('.',',')} €/kWh</p>
+        <p>Orçamento indicado: ${entradas.orcamento}</p>
+      </div>
+    </div>
+
+    <h2>Discriminação do orçamento — ${rec.tag}</h2>
     <table>
-      ${linha('Região', entradas.regiao)}
-      ${linha('Tipo de utilização', entradas.utilizacao)}
-      ${linha('Consumo anual', entradas.consumoAno + ' kWh')}
-      ${linha('Autossuficiência pretendida', entradas.cobertura + ' %')}
-      ${linha('Área disponível', entradas.roofArea + (state.roofArea?' m²':''))}
-      ${linha('Tarifa', entradas.tarifa)}
-      ${linha('Orçamento', entradas.orcamento)}
+      <tr><th>Descrição</th><th class="c">Qtd.</th><th class="r">Preço unit.</th><th class="r">Total</th></tr>
+      ${itens}
     </table>
-
-    <h2>2. Solução escolhida — ${rec.tag} (recomendada)</h2>
-    <table>
-      ${linha('Painel', rec.painel.marca + ' ' + rec.painel.modelo + ' (' + rec.painel.potencia + ' Wp, ' + rec.painel.rendimento + '%)')}
-      ${linha('Número de painéis', rec.N)}
-      ${linha('Potência instalada', rec.Preal.toFixed(2) + ' kW')}
-      ${linha('Área ocupada', rec.area.toFixed(0) + ' m²')}
-      ${linha('Produção anual estimada', Math.round(rec.prodAno) + ' kWh')}
-      ${linha('Cobertura real do consumo', Math.round(rec.cobReal*100) + ' %')}
-      ${linha('Custo do sistema (c/ IVA ' + ivaPct + '%)', eur(rec.custo))}
-      ${linha('Poupança anual', eur(rec.poupAno))}
-      ${linha('Retorno do investimento', (isFinite(rec.payback)?rec.payback.toFixed(1)+' anos':'—'))}
-      ${linha('Redução de CO₂', Math.round(rec.co2) + ' kg/ano')}
+    <table class="tots">
+      <tr><td class="lbl">Subtotal (sem IVA)</td><td class="val">${eur(subtotal)}</td></tr>
+      <tr><td class="lbl">IVA (${ivaPct}%)</td><td class="val">${eur(ivaValor)}</td></tr>
+      <tr class="totrow"><td class="lbl">TOTAL${bat?' (painéis + bateria)':''}</td><td class="val">${eur(total)}</td></tr>
     </table>
+    <p class="muted">💡 O preço de cada painel (${eur(rec.painel.preco)}) é só o módulo. A maior parte do valor é o <b>inversor, a estrutura e a mão de obra de instalação</b> (${eur(EXTRA_KW)} por kW instalado), aos quais acresce o IVA de ${ivaPct}%.</p>
 
-    <h2>3. Três propostas alternativas</h2>
+    <h2>Desempenho estimado</h2>
+    <table>${desemp}</table>
+
+    <h2>Outras propostas consideradas</h2>
     <table>
-      <tr><th>Solução</th><th>Painéis</th><th>Potência</th><th>Produção/ano</th><th>Custo c/ IVA</th><th>Retorno</th></tr>
+      <tr><th>Solução</th><th class="c">Painéis</th><th class="c">Potência</th><th class="r">Produção/ano</th><th class="r">Custo c/ IVA</th><th class="r">Retorno</th></tr>
       ${planRows}
     </table>
-    <p class="muted">Produção de referência da região: ${ctx.prodRegional} kWh/kWp/ano · IVA aplicável: ${ivaPct}%.
-    Gerado por Sunny — projeto Gestão e Programação de Sistemas Informáticos.</p>
+
+    <div class="note">⚠ Documento <b>pró-forma</b> gerado automaticamente para fins de simulação — <b>não é uma fatura fiscal</b>. Valores estimados; o orçamento final depende de visita técnica. Produção de referência: ${ctx.prodRegional} kWh/kWp/ano (PVGIS). Autoconsumo até 30 kW: Comunicação Prévia (DGEG, DL 15/2022).</div>
+    <p class="muted">Gerado por Sunny — projeto de Gestão e Programação de Sistemas Informáticos · ${dataStr}</p>
+
     <script>window.onload=function(){window.print();}<\/script>
     </body></html>`);
   w.document.close();

@@ -42,11 +42,11 @@ Depois abrir **http://localhost:4321**.
 │   ├── auth.js             → autenticação (login/registo via Supabase Auth)
 │   ├── db.js               → acesso a dados (regioes, paineis, baterias, favoritos, calculos)
 │   ├── app.js              → LÓGICA PRINCIPAL: quiz, motor de cálculo, gráficos, relatório
-│   ├── paineis.js          → catálogo de 493 painéis (dados — fallback local)
+│   ├── paineis.js          → catálogo de 66 painéis reais (dados — fallback local)
 │   └── baterias.js         → catálogo de 53 baterias (dados — fallback local)
 ├── database/
 │   ├── schema.sql          → tabelas + RLS (profiles, regioes, paineis, favoritos, calculos)
-│   ├── seed.sql            → INSERT dos 493 painéis
+│   ├── seed.sql            → INSERT dos 66 painéis reais
 │   └── baterias.sql        → tabela + INSERT das 53 baterias
 ├── scripts/                → geradores Node dos dados/seed (uso de desenvolvimento)
 │   ├── gen-paineis.js
