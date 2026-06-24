@@ -188,7 +188,7 @@
 
     <!-- intro -->
     <div id="intro" class="hero glass">
-      <h2>Descobre o teu sistema <em>solar ideal</em> em 8 passos.</h2>
+      <h2>Descobre o teu sistema <em>solar ideal</em> em 7 passos.</h2>
       <p>Responde a algumas perguntas sobre o teu consumo (em kWh) e a percentagem de autossuficiência que pretendes. Dimensionamos o sistema com dados reais de produção solar por região de Portugal (fonte: PVGIS / tabela Regiões) e mostramos-te três soluções — <b>Económica</b>, <b>Equilibrada</b> e <b>Premium</b> — com produção anual, poupança e retorno do investimento.</p>
       <button class="btn btn-go" onclick="startQuiz()">Começar cálculo ☀</button>
       <div class="feat">
@@ -204,9 +204,9 @@
     <!-- quiz -->
     <div id="quiz" class="card glass" style="display:none">
       <div class="progress">
-        <span class="lbl" id="plbl">Passo 1 de 8</span>
+        <span class="lbl" id="plbl">Passo 1 de 7</span>
         <div class="dot done" id="p1"></div><div class="dot" id="p2"></div>
-        <div class="dot" id="p3"></div><div class="dot" id="p4"></div><div class="dot" id="p5"></div><div class="dot" id="p6"></div><div class="dot" id="p7"></div><div class="dot" id="p8"></div>
+        <div class="dot" id="p3"></div><div class="dot" id="p4"></div><div class="dot" id="p5"></div><div class="dot" id="p6"></div><div class="dot" id="p7"></div>
       </div>
 
       <!-- step 1 region -->
@@ -285,26 +285,15 @@
         <label class="fld"><div class="area"><input type="number" id="telhado" min="1" placeholder="Ex.: 25" inputmode="decimal"></div></label>
       </div>
 
-      <!-- step 6 tariff (preços médios PT 2026: ERSE/mercado) -->
+      <!-- step 6 budget (OPCIONAL) -->
       <div class="step" data-step="6">
-        <div class="q">Que tipo de tarifa tens?</div>
-        <div class="hint">Serve para calcular a poupança e o retorno. Se não tiveres a certeza, escolhe "Simples" — é a mais comum.</div>
-        <div class="opts" id="tarifaOpts">
-          <div class="opt sel" data-t="0.22" data-name="simples" onclick="pickTarifa(this)"><b>Simples</b><small>preço único · ~0,22 €/kWh</small></div>
-          <div class="opt" data-t="0.19" data-name="bi" onclick="pickTarifa(this)"><b>Bi-horário</b><small>dia / noite · ~0,19 €/kWh</small></div>
-          <div class="opt" data-t="0.18" data-name="tri" onclick="pickTarifa(this)"><b>Tri-horário</b><small>3 períodos · ~0,18 €/kWh</small></div>
-        </div>
-      </div>
-
-      <!-- step 7 budget (OPCIONAL) -->
-      <div class="step" data-step="7">
         <div class="q">Tens um orçamento máximo? <small style="font-weight:500;opacity:.7">(opcional)</small></div>
         <div class="hint">Se indicares um valor, avisamos-te quando uma solução o ultrapassa. <b>Deixa em branco</b> para dimensionar só pela autossuficiência que escolheste.</div>
         <label class="fld"><div class="euro"><input type="number" id="orcamento" min="1" placeholder="Ex.: 5000 (ou deixa vazio)" inputmode="decimal"></div></label>
       </div>
 
-      <!-- step 8 battery -->
-      <div class="step" data-step="8">
+      <!-- step 7 battery -->
+      <div class="step" data-step="7">
         <div class="q">Queres guardar energia numa bateria? 🔋</div>
         <div class="hint">Os painéis produzem de dia, mas muito do consumo é à noite. Uma bateria guarda o excedente do dia para usares à noite — custa mais, mas aumenta a poupança. <b>Só te mostramos baterias que caibam no teu orçamento.</b></div>
         <div class="opts" id="batOpts">
@@ -338,7 +327,7 @@
       <!-- realidade PT: registo DGEG, potência contratada, condomínio -->
       <div class="chart-box glass" id="regBox" style="display:none"></div>
 
-      <!-- estimativa teórica (fórmula da aula: Eu_day → Et → z) + dica de tarifa -->
+      <!-- estimativa teórica (fórmula da aula: Eu_day → Et → z) + dica de consumo -->
       <div class="chart-box glass" id="theoryBox" style="display:none"></div>
 
       <div class="chart-box glass" id="chartBox">
@@ -451,7 +440,7 @@
     </div>
 
     <div class="src">
-      <b>Fontes dos dados:</b> produção solar por região e curva mensal — PVGIS (Comissão Europeia) / tabela Regiões do projeto (Norte 1300, Centro 1450, Sul 1650, Açores 1400, Madeira 1700 kWh/kWp/ano); preço médio da eletricidade ~0,22 €/kWh (tarifa simples; bi ~0,19, tri ~0,18 — ERSE / mercado português); IVA por região (enunciado): Continente 23% · Madeira 22% · Açores 16%; licenciamento de autoconsumo — DL 15/2022 (DGEG): até 1,5 kW sem registo, 1,5–30 kW com Comunicação Prévia.
+      <b>Fontes dos dados:</b> produção solar por região e curva mensal — PVGIS (Comissão Europeia) / tabela Regiões do projeto (Norte 1300, Centro 1450, Sul 1650, Açores 1400, Madeira 1700 kWh/kWp/ano); preço médio da eletricidade ~0,22 €/kWh (ERSE / mercado português); IVA por região (enunciado): Continente 23% · Madeira 22% · Açores 16%; licenciamento de autoconsumo — DL 15/2022 (DGEG): até 1,5 kW sem registo, 1,5–30 kW com Comunicação Prévia.
     </div>
   </section>
 
@@ -506,7 +495,7 @@
     <!-- ============ FONTES DOS DADOS ============ -->
     <div class="fontes glass" id="fontes">
       <h3>📚 Fontes dos dados</h3>
-      <p>O catálogo reúne <b>modelos reais</b> de fabricantes. As especificações (potência, rendimento, dimensões, peso, células, tecnologia, garantias e coeficiente de temperatura) foram retiradas das <b>fichas técnicas oficiais</b> de cada fabricante — abre a ficha de qualquer painel e clica em <b>“Ficha técnica do fabricante →”</b> para ver a folha de onde vieram os dados. O <b>rendimento</b> é calculado pela física (η = Potência ÷ Área, em STC), coincidindo com a ficha.</p>
+      <p>O catálogo reúne <b>modelos reais</b> de fabricantes. As especificações (potência, rendimento, dimensões, peso, células, tecnologia, garantias e coeficiente de temperatura) foram retiradas das <b>fichas técnicas oficiais</b> de cada fabricante — abre a ficha de qualquer painel e clica em <b>“Ficha técnica do fabricante →”</b> para ver a folha de onde vieram os dados. O <b>rendimento</b> é calculado pela física (η = Potência ÷ Área, em STC), coincidindo com a ficha. Os <b>preços</b> são orientativos, recolhidos de <b>lojas portuguesas</b> que vendem estes modelos (coluna à direita).</p>
 
       <div class="fontes-cols">
         <div>
@@ -525,15 +514,16 @@
           </ul>
         </div>
         <div>
-          <h5>Diretórios e preços (orientativos)</h5>
+          <h5>Lojas portuguesas (preços orientativos)</h5>
           <ul class="fontes-list">
-            <li><a href="https://www.enfsolar.com/pv/panel-datasheet" target="_blank" rel="noopener noreferrer">ENF Solar — diretório de fichas técnicas</a></li>
-            <li><a href="https://tienda-solar.es/en/" target="_blank" rel="noopener noreferrer">Tienda Solar (ES/PT)</a></li>
-            <li><a href="https://www.vncasainteligente.pt/paineis-fotovoltaicos" target="_blank" rel="noopener noreferrer">VNC Casa Inteligente (PT)</a></li>
-            <li><a href="https://www.perma-batteries.com/pt/" target="_blank" rel="noopener noreferrer">Perma Batteries (PT)</a></li>
-            <li><a href="https://www.solartraders.com/en/" target="_blank" rel="noopener noreferrer">SolarTraders (distribuidor UE)</a></li>
+            <li><a href="https://www.solarshop.pt/" target="_blank" rel="noopener noreferrer">Solarshop.pt — distribuidor fotovoltaico</a></li>
+            <li><a href="https://pt.krannich-solar.com/" target="_blank" rel="noopener noreferrer">Krannich Solar Portugal</a></li>
+            <li><a href="https://www.vncasainteligente.pt/paineis-fotovoltaicos" target="_blank" rel="noopener noreferrer">VNC Casa Inteligente — Jinko / LONGi / JA Solar</a></li>
+            <li><a href="https://sunenergy.pt/" target="_blank" rel="noopener noreferrer">Sunenergy — kits de autoconsumo</a></li>
+            <li><a href="https://www.damiasolar.com/pt/" target="_blank" rel="noopener noreferrer">Damia Solar (PT)</a></li>
+            <li><a href="https://www.obras360.pt/jinko-solar" target="_blank" rel="noopener noreferrer">Obras360 — Jinko Solar</a></li>
           </ul>
-          <p class="fontes-note">⚠ Os <b>preços</b> são <b>orientativos</b> (retalho PT/Ibérico, ~€/Wp por gama) e variam por loja e quantidade — servem para comparar opções, não são cotações.</p>
+          <p class="fontes-note">⚠ Os <b>preços</b> são <b>orientativos</b>, recolhidos de lojas portuguesas (retalho, ~€/Wp por gama). Variam por loja e quantidade — servem para comparar opções, não são cotações.</p>
         </div>
       </div>
     </div>
@@ -658,6 +648,16 @@
           <span class="tchip">Dados PVGIS / ERSE</span>
         </div>
       </div>
+      <div style="width:100%;margin-top:16px;border-top:1px dashed var(--line);padding-top:16px">
+        <p style="font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:9px">Fontes dos dados</p>
+        <p style="color:var(--muted);font-size:.82rem;line-height:1.65;max-width:42ch;margin:0 auto">
+          Painéis — fichas técnicas oficiais dos fabricantes; preços de lojas portuguesas (Solarshop, Krannich PT, VNC, Sunenergy, Damia Solar, Obras360).<br>
+          Produção solar — <a href="https://re.jrc.ec.europa.eu/pvg_tools/en/" target="_blank" rel="noopener noreferrer" class="about-link">PVGIS</a> (Comissão Europeia).
+          Eletricidade e IVA — <a href="https://www.erse.pt/" target="_blank" rel="noopener noreferrer" class="about-link">ERSE</a>.
+          Licenciamento — <a href="https://www.dgeg.gov.pt/" target="_blank" rel="noopener noreferrer" class="about-link">DGEG</a>.<br>
+          <span style="color:var(--faint)">Lista completa na aba <b>Catálogo → Fontes dos dados</b>.</span>
+        </p>
+      </div>
     </div>
   </div>
 </div>
@@ -675,7 +675,7 @@
 <script src="js/baterias.js?v=20260621"></script>
 <script src="js/db.js?v=20260621"></script>
 <script src="js/auth.js?v=20260621"></script>
-<script src="js/app.js?v=20260624"></script>
+<script src="js/app.js?v=20260626"></script>
 <script src="js/landing.js?v=20260621"></script>
 </body>
 </html>

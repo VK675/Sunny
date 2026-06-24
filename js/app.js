@@ -25,12 +25,8 @@ const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov"
 const IRRADIACAO_BASE = 5;   // kWh/m²/dia — valor de referência (usamos o real da região)
 const ETA_TIER = { 'Económico':18, 'Equilibrado':20, 'Premium':22 };
 
-/* dica para aproveitar melhor a tarifa — os painéis cobrem o consumo mais caro */
-const TARIFF_TIPS = {
-  simples: 'Com tarifa simples o preço é igual a toda a hora: usa a energia mal é produzida — liga os electrodomésticos durante o dia para comprares menos à rede.',
-  bi:      'Com bi-horário, a eletricidade da rede é mais cara de dia. Põe a máquina de lavar, a loiça e o aquecimento de água a funcionar de dia — é quando os painéis produzem e substituem a energia mais cara.',
-  tri:     'Com tri-horário, evita as horas de ponta (fim da tarde). Concentra os consumos pesados ao meio-dia, quando os painéis produzem no máximo e a tarifa é a mais cara.'
-};
+/* dica para aproveitar melhor a energia solar — usar o consumo quando há Sol */
+const DICA_CONSUMO = 'Usa a energia mal é produzida: liga a máquina de lavar, a loiça e o aquecimento de água durante o dia, quando os painéis produzem — assim compras menos à rede e poupas mais.';
 
 /* ============ BASE DE DADOS DE PAINÉIS ============ */
 /* Carregado da base de dados (Supabase) por loadPaineis(), no arranque da app.
@@ -43,7 +39,8 @@ let marketPending = false;   // catálogo aberto antes de os dados chegarem?
 let step = 1;
 let appReady = false;
 const state = { regiao:null, consumoAno:0, cobertura:1.0, orcamento:0,
-                preco:0.22, tarifa:'simples', roofArea:0, bateria:'nao',
+                preco:0.22, /* preço médio da eletricidade (€/kWh, ERSE/mercado) */
+                roofArea:0, bateria:'nao',
                 utilizacao:'habitacao', habitacao:'moradia', kva:0 };
 let sel; // dropdown de região (preenchido quando a app fica pronta)
 
@@ -400,7 +397,7 @@ function openPanel(id){
       <button class="btn m-fav ${fav?'on':''}" onclick="modalFav('${p.id}', this)">${fav ? '♥ Nos favoritos' : '♡ Guardar nos favoritos'}</button>
       ${p.datasheet ? `<a class="btn btn-ghost m-ds" href="${p.datasheet}" target="_blank" rel="noopener noreferrer">📄 Ficha técnica do fabricante →</a>` : ''}
     </div>
-    <p class="m-source">Especificações da ficha técnica oficial ${p.marca}. Preço orientativo (retalho PT/Ibérico).</p>`;
+    <p class="m-source">Especificações da ficha técnica oficial ${p.marca}. Preço orientativo (retalho português).</p>`;
   document.getElementById('panelModal').classList.add('show');
   document.body.style.overflow = 'hidden';
   trapModal(document.getElementById('panelModal'));
@@ -456,12 +453,6 @@ function startQuiz(){
   step = 1; showStep(1);            // garante rótulo/pontos corretos (nº de passos dinâmico)
 }
 function totalSteps(){ return document.querySelectorAll('#quiz .step').length; }
-function pickTarifa(el){
-  document.querySelectorAll('#tarifaOpts .opt').forEach(o => o.classList.remove('sel'));
-  el.classList.add('sel');
-  state.preco  = parseFloat(el.dataset.t);
-  state.tarifa = el.dataset.name;
-}
 function pickBateria(el){
   document.querySelectorAll('#batOpts .opt').forEach(o => o.classList.remove('sel'));
   el.classList.add('sel');
@@ -517,7 +508,7 @@ function nextStep(){
     const v = parseFloat(document.getElementById('telhado').value);
     state.roofArea = (v>0) ? v : 0;               // 0 = sem limite de espaço
   }
-  if (step===7){                                  // orçamento (OPCIONAL)
+  if (step===6){                                  // orçamento (OPCIONAL)
     const v = parseFloat(document.getElementById('orcamento').value);
     state.orcamento = (v>0) ? v : 0;              // 0 = sem limite de orçamento
   }
@@ -585,7 +576,7 @@ function theoreticalEstimate(ctx, painel){
     required_area_m2:     Math.ceil(z),
     daily_generation_kwh: et,
     euDay, eta, irr,
-    tariff_tip: TARIFF_TIPS[state.tarifa] || TARIFF_TIPS.simples
+    tariff_tip: DICA_CONSUMO
   };
 }
 
@@ -713,7 +704,7 @@ function buildBatteryOffer(ctx, plans){
   }
 
   /* poupança extra: cada kWh guardado deixa de ser vendido barato (0,05)
-     e evita comprar à rede ao preço da tarifa → vale a diferença.
+     e evita comprar à rede ao preço da eletricidade → vale a diferença.
      Limites físicos: capacidade útil da bateria, excedente real do sistema
      E o consumo noturno (~60% do diário) — não dá para "usar" mais do que isso. */
   const withCalc = (b) => {
@@ -888,9 +879,8 @@ function calcular(){
   selectPlan(bestPlan.key);
   document.getElementById('planHint').style.display = 'block';
 
-  // ---- estimativa teórica (fórmula da aula) + dica de tarifa ----
+  // ---- estimativa teórica (fórmula da aula) + dica de consumo ----
   const est = theoreticalEstimate(out.ctx, out.plans[1].painel);
-  const tarifaLbl = { simples:'Simples', bi:'Bi-horário', tri:'Tri-horário' }[state.tarifa] || 'Simples';
   // verdict de espaço: compara a área teórica (z) com o telhado indicado
   const roofLine = state.roofArea > 0
     ? `<div class="m-cell"><div class="k">Espaço no telhado</div><div class="v">${state.roofArea} m² · ${est.required_area_m2 <= state.roofArea ? '✓ chega para 100%' : '⚠ apertado'}</div></div>`
@@ -907,9 +897,8 @@ function calcular(){
       <div class="m-cell"><div class="k">Irradiação da região</div><div class="v">${est.irr.toFixed(1)} kWh/m²/dia</div></div>
       <div class="m-cell"><div class="k">Área de painéis (z)</div><div class="v">${est.required_area_m2} m²</div></div>
       ${roofLine}
-      <div class="m-cell"><div class="k">Tarifa escolhida</div><div class="v">${tarifaLbl}</div></div>
     </div>
-    <div class="insight">☀ <b>Dica para a tua tarifa (${tarifaLbl}):</b> ${est.tariff_tip}</div>`;
+    <div class="insight">☀ <b>Dica para poupar mais:</b> ${est.tariff_tip}</div>`;
 
   renderBatteryOffer(out);       // baterias (se o utilizador quis)
   renderRegBox(out);             // DGEG / potência contratada / condomínio
@@ -1041,7 +1030,7 @@ async function guardarCalculo(btn){
   try {
     await saveCalculo(u.id, {
       regiao: state.regiao, orcamento: state.orcamento,
-      tarifa: state.tarifa, roof_area: state.roofArea,
+      roof_area: state.roofArea,
       resultado: {
         consumoAno: state.consumoAno, cobertura: state.cobertura,
         utilizacao: state.utilizacao, bateria: state.bateria,
@@ -1239,8 +1228,6 @@ function repeatCalculo(id){
   const util = res.utilizacao || 'habitacao';
   const uOpt = document.querySelector('#utilOpts .opt[data-u="'+util+'"]');
   if (uOpt) pickUtil(uOpt);
-  const tOpt = document.querySelector('#tarifaOpts .opt[data-name="'+(r.tarifa || 'simples')+'"]');
-  if (tOpt) pickTarifa(tOpt);
   const bat = res.bateria || 'nao';
   const bOpt = document.querySelector('#batOpts .opt[data-b="'+bat+'"]');
   if (bOpt) pickBateria(bOpt);
@@ -1307,7 +1294,6 @@ function relatorioDados(){
       consumoAno: Math.round(state.consumoAno),
       cobertura: Math.round(state.cobertura*100),
       roofArea: state.roofArea || '—',
-      tarifa: { simples:'Simples', bi:'Bi-horário', tri:'Tri-horário' }[state.tarifa] || 'Simples',
       orcamento: state.orcamento > 0 ? eur(state.orcamento) : 'Sem limite'
     }
   };
@@ -1424,7 +1410,7 @@ function exportarPDF(){
       <div><h4>Dados do consumo</h4>
         <p>Consumo: <b>${entradas.consumoAno} kWh/ano</b></p>
         <p>Autossuficiência pretendida: <b>${entradas.cobertura}%</b></p>
-        <p>Tarifa: ${entradas.tarifa} · ${state.preco.toFixed(2).replace('.',',')} €/kWh</p>
+        <p>Preço da eletricidade: ${state.preco.toFixed(2).replace('.',',')} €/kWh</p>
         <p>Orçamento indicado: ${entradas.orcamento}</p>
       </div>
     </div>
@@ -1472,7 +1458,7 @@ function exportarCSV(){
   add('Consumo anual (kWh)', entradas.consumoAno);
   add('Autossuficiência (%)', entradas.cobertura);
   add('Área disponível (m²)', state.roofArea || '');
-  add('Tarifa', entradas.tarifa);
+  add('Preço eletricidade (€/kWh)', state.preco.toFixed(2));
   add('Orçamento', entradas.orcamento);
   add('', '');
   add('SOLUÇÃO ESCOLHIDA', rec.tag + ' (recomendada)');
