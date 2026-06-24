@@ -660,16 +660,31 @@ function buildPlans(){
   usados.add(pEco.id);
   const eco = planFor(ctx, pEco, 'eco', 'Económica', 'Menor custo');
 
-  // 2) EQUILIBRADA (recomendada) — melhor relação preço/produção (menor €/Wp)
+  // 2) EQUILIBRADA — melhor relação preço/produção (menor €/Wp)
   const pMid = distinct([...PAINEIS].sort((a,b)=> a.precoWp-b.precoWp || b.rendimento-a.rendimento));
   usados.add(pMid.id);
-  const mid = planFor(ctx, pMid, 'mid', 'Equilibrada', 'Melhor relação preço/produção', { best:true });
+  const mid = planFor(ctx, pMid, 'mid', 'Equilibrada', 'Melhor relação preço/produção');
 
   // 3) PREMIUM — maior eficiência e menor área ocupada
   const pTop = distinct([...PAINEIS].sort((a,b)=> b.rendimento-a.rendimento || a.area-b.area));
   const ideal = planFor(ctx, pTop, 'ideal', 'Premium', 'Maior eficiência, menor área');
 
-  return { insufficient:false, plans:[eco, mid, ideal], ctx };
+  const plans = [eco, mid, ideal];
+  // RECOMENDADO = a opção MAIS VANTAJOSA, não uma fixa: entre as que cobrem a
+  // autossuficiência pedida (≥ cobertura), a de melhor retorno (menor payback);
+  // empate de payback → a mais barata. Assim o "Recomendado" nunca fica mais
+  // caro do que uma alternativa que cobre o mesmo (ex.: em sistemas pequenos,
+  // 1 painel Premium pode ser melhor negócio que 2 painéis Equilibrada).
+  const cobrem = plans.filter(p => p.cobReal >= ctx.cobertura - 1e-9);
+  const pool   = cobrem.length ? cobrem : plans;
+  const pb = p => isFinite(p.payback) ? p.payback : Infinity;
+  const best = pool.reduce((a,b) =>
+    (pb(b) < pb(a) - 1e-9) ? b :
+    (pb(b) > pb(a) + 1e-9) ? a :
+    (b.custo < a.custo ? b : a));
+  best.best = true;
+
+  return { insufficient:false, plans, ctx };
 }
 
 /* =========================================================================
