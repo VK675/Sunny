@@ -1,4 +1,4 @@
-# ☀ Solário — Sistema de Dimensionamento Fotovoltaico
+# Solário — Sistema de Dimensionamento Fotovoltaico
 
 Projeto de **Gestão e Programação de Sistemas Informáticos**.
 
@@ -9,7 +9,7 @@ alternativas (Económica / Equilibrada / Premium) e tempo de retorno do investim
 
 ---
 
-## ▶ Como executar
+## Como executar
 
 A aplicação é **estática** (HTML/CSS/JavaScript, sem passo de *build*). Basta servi-la
 por HTTP a partir da raiz do projeto:
@@ -30,7 +30,7 @@ Depois abrir **http://localhost:4321**.
 
 ---
 
-## 📁 Estrutura do projeto
+## Estrutura do projeto
 
 ```
 .
@@ -62,7 +62,7 @@ Depois abrir **http://localhost:4321**.
 
 ---
 
-## 🧮 Algoritmo (conforme o enunciado)
+## Algoritmo (conforme o enunciado)
 
 Dados pedidos ao utilizador: **consumo** (anual ou mensal, em kWh), **região**,
 **tipo de utilização** (Habitação/Empresa), **área disponível** e **% de autossuficiência**
@@ -92,7 +92,7 @@ Açores 1400 · Madeira 1700.
 
 ---
 
-## 🗄️ Base de dados (Supabase / PostgreSQL)
+## Base de dados (Supabase / PostgreSQL)
 
 | Tabela | Conteúdo |
 |---|---|
@@ -105,7 +105,7 @@ Açores 1400 · Madeira 1700.
 
 ---
 
-## ✨ Funcionalidades extra
+## Funcionalidades extra
 
 - **Exportação** do relatório final em **PDF** e **Excel/CSV**.
 - **Gráficos** de produção mensal (sazonalidade).
